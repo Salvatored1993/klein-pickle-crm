@@ -16,10 +16,10 @@ alter table public.lead_products
 -- pipeline_summary/won_sales (reference estimated_annual_sales directly).
 -- All six are recreated below.
 alter table public.leads
-  drop column proposed_volume,
-  drop column volume_unit,
-  drop column estimated_annual_volume,
-  drop column estimated_annual_sales,
+  drop column proposed_volume cascade,
+  drop column volume_unit cascade,
+  drop column estimated_annual_volume cascade,
+  drop column estimated_annual_sales cascade,
   drop column target_price cascade;
 
 create or replace view public.lead_totals
