@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function LoginPage(props: PageProps<"/login">) {
   const searchParams = await props.searchParams;
-  const next =
-    typeof searchParams.next === "string" ? searchParams.next : "/leads";
+  const next = typeof searchParams.next === "string" ? searchParams.next : "/";
 
   return (
     <div className="flex min-h-svh flex-1 items-center justify-center bg-muted/40 p-4">

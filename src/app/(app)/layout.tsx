@@ -20,7 +20,7 @@ export default async function AppLayout({
     <div className="flex min-h-svh flex-1">
       <aside className="hidden w-64 shrink-0 flex-col border-r bg-background md:flex">
         <div className="flex h-14 items-center border-b px-4">
-          <Link href="/leads" className="text-sm font-semibold">
+          <Link href="/" className="text-sm font-semibold">
             Klein Pickle CRM
           </Link>
         </div>
@@ -34,7 +34,7 @@ export default async function AppLayout({
 
       <div className="flex min-h-svh flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b px-4 md:hidden">
-          <Link href="/leads" className="text-sm font-semibold">
+          <Link href="/" className="text-sm font-semibold">
             Klein Pickle CRM
           </Link>
           <UserMenu fullName={user.full_name} email={user.email} role={user.role} />

@@ -85,9 +85,24 @@ export function CustomerForm({
   }
 
   const canPickSalesperson = currentUser.role === "admin";
+  const canEdit =
+    mode === "create" ||
+    currentUser.role === "admin" ||
+    currentUser.id === customer?.salesperson_id;
+  const ownerName = customer
+    ? (salespeople.find((p) => p.id === customer.salesperson_id)?.full_name ??
+      "another salesperson")
+    : null;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4 pb-24 md:pb-6">
+      {!canEdit ? (
+        <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+          You&apos;re viewing {ownerName}&apos;s customer. Only they or an admin can make
+          changes here — you can still add tasks and comments below.
+        </p>
+      ) : null}
+      <fieldset disabled={!canEdit} className="contents">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Account info</CardTitle>
@@ -259,12 +274,15 @@ export function CustomerForm({
           </div>
         </CardContent>
       </Card>
+      </fieldset>
 
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t bg-background p-3 md:static md:border-none md:bg-transparent md:p-0">
-        <Button type="submit" disabled={isPending} className="w-full md:w-auto">
-          {isPending ? "Saving…" : mode === "create" ? "Add customer" : "Save changes"}
-        </Button>
-      </div>
+      {canEdit ? (
+        <div className="fixed inset-x-0 bottom-16 z-30 border-t bg-background p-3 md:static md:border-none md:bg-transparent md:p-0">
+          <Button type="submit" disabled={isPending} className="w-full md:w-auto">
+            {isPending ? "Saving…" : mode === "create" ? "Add customer" : "Save changes"}
+          </Button>
+        </div>
+      ) : null}
     </form>
   );
 }

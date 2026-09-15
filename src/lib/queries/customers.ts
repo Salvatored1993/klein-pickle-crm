@@ -11,6 +11,18 @@ export async function listCustomers() {
   return data;
 }
 
+export async function listCustomersBySalesperson(salespersonId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("salesperson_id", salespersonId)
+    .order("next_checkin_date", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function getCustomer(id: string) {
   const supabase = await createClient();
   const { data: customer, error } = await supabase

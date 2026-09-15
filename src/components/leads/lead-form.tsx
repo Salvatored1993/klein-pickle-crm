@@ -113,9 +113,24 @@ export function LeadForm({
   }
 
   const canPickSalesperson = currentUser.role === "admin";
+  const canEdit =
+    mode === "create" ||
+    currentUser.role === "admin" ||
+    currentUser.id === lead?.salesperson_id;
+  const ownerName = lead
+    ? (salespeople.find((p) => p.id === lead.salesperson_id)?.full_name ??
+      "another salesperson")
+    : null;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4 pb-24 md:pb-6">
+      {!canEdit ? (
+        <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+          You&apos;re viewing {ownerName}&apos;s lead. Only they or an admin can make
+          changes here — you can still add tasks and comments below.
+        </p>
+      ) : null}
+      <fieldset disabled={!canEdit} className="contents">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Basic info</CardTitle>
@@ -541,12 +556,15 @@ export function LeadForm({
           </div>
         </CardContent>
       </Card>
+      </fieldset>
 
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t bg-background p-3 md:static md:border-none md:bg-transparent md:p-0">
-        <Button type="submit" disabled={isPending} className="w-full md:w-auto">
-          {isPending ? "Saving…" : mode === "create" ? "Create lead" : "Save changes"}
-        </Button>
-      </div>
+      {canEdit ? (
+        <div className="fixed inset-x-0 bottom-16 z-30 border-t bg-background p-3 md:static md:border-none md:bg-transparent md:p-0">
+          <Button type="submit" disabled={isPending} className="w-full md:w-auto">
+            {isPending ? "Saving…" : mode === "create" ? "Create lead" : "Save changes"}
+          </Button>
+        </div>
+      ) : null}
     </form>
   );
 }

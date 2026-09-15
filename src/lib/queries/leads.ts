@@ -11,6 +11,18 @@ export async function listLeads() {
   return data;
 }
 
+export async function listLeadsBySalesperson(salespersonId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("salesperson_id", salespersonId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function getLead(id: string) {
   const supabase = await createClient();
   const { data: lead, error } = await supabase

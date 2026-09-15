@@ -1,5 +1,6 @@
 import type { UserRole } from "@/lib/database.types";
 import {
+  Home,
   LayoutDashboard,
   ListChecks,
   ListTodo,
@@ -7,6 +8,7 @@ import {
   AlarmClockCheck,
   Settings,
   Building2,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -18,8 +20,10 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
+  { href: "/", label: "Home", icon: Home },
   { href: "/leads", label: "Leads", icon: ListChecks },
   { href: "/customers", label: "Customers", icon: Building2 },
+  { href: "/team", label: "Team", icon: Users },
   { href: "/pipeline", label: "Pipeline", icon: KanbanSquare },
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   {
@@ -42,16 +46,11 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 export const MOBILE_NAV_ITEMS: NavItem[] = [
+  { href: "/", label: "Home", icon: Home },
   { href: "/leads", label: "Leads", icon: ListChecks },
   { href: "/customers", label: "Customers", icon: Building2 },
-  { href: "/pipeline", label: "Pipeline", icon: KanbanSquare },
+  { href: "/team", label: "Team", icon: Users },
   { href: "/tasks", label: "Tasks", icon: ListTodo },
-  {
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    roles: ["admin"],
-  },
 ];
 
 export function visibleNavItems(items: NavItem[], role: UserRole) {
