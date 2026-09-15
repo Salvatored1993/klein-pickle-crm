@@ -269,6 +269,10 @@ export function CustomerForm({
               value={values.notes ?? ""}
               onChange={(e) => set("notes", e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              This is a general summary and gets overwritten each edit. For a dated
+              history of updates, use the Activity tab instead.
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -39,12 +39,12 @@ export function ActivityFeed({
       >
         <Textarea
           name="body"
-          placeholder="Add a comment…"
+          placeholder="Add a dated note…"
           rows={2}
           required
         />
         <Button type="submit" size="sm" className="self-end" disabled={isPending}>
-          {isPending ? "Posting…" : "Post comment"}
+          {isPending ? "Saving…" : "Add note"}
         </Button>
       </form>
 
