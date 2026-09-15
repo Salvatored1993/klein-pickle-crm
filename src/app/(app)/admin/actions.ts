@@ -40,15 +40,16 @@ export async function listProducts() {
   const { data, error } = await supabase
     .from("products")
     .select("*")
+    .order("category", { ascending: true })
     .order("name", { ascending: true });
 
   if (error) throw error;
   return data;
 }
 
-export async function createProduct(name: string) {
+export async function createProduct(name: string, category: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("products").insert({ name });
+  const { error } = await supabase.from("products").insert({ name, category });
   if (error) throw error;
   revalidatePath("/admin/users");
 }

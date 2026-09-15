@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createLead, updateLead, type LeadInput } from "@/app/(app)/leads/actions";
-import type { Database } from "@/lib/database.types";
+import type { Database, PackSize } from "@/lib/database.types";
 import {
   SALES_STAGES,
   STAGE_DEFAULT_PROBABILITY,
@@ -12,6 +12,7 @@ import {
   CUSTOMER_TYPES,
   FREIGHT_TERMS_OPTIONS,
   SAMPLE_TRIAL_STATUSES,
+  PACK_SIZES,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { ProductChecklist } from "@/components/products/product-checklist";
 import {
   Card,
   CardContent,
@@ -70,6 +72,7 @@ export function LeadForm({
       sample_required: false,
       broker_involved: false,
       sample_trial_status: "Not Required",
+      pack_sizes: [],
     },
   );
   const [productIds, setProductIds] = useState<string[]>(initialProductIds);
@@ -93,6 +96,18 @@ export function LeadForm({
     setProductIds((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
     );
+  }
+
+  function togglePackSize(size: PackSize) {
+    setValues((prev) => {
+      const current = prev.pack_sizes ?? [];
+      return {
+        ...prev,
+        pack_sizes: current.includes(size)
+          ? current.filter((s) => s !== size)
+          : [...current, size],
+      };
+    });
   }
 
   function onSubmit(e: React.FormEvent) {
@@ -255,37 +270,27 @@ export function LeadForm({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="pack_size_format">Pack size / format</Label>
-            <Input
-              id="pack_size_format"
-              placeholder="e.g. 16oz jar, 12/case"
-              value={values.pack_size_format ?? ""}
-              onChange={(e) => set("pack_size_format", e.target.value)}
-            />
+          <div className="flex flex-col gap-2 sm:col-span-2">
+            <Label>Pack size / format</Label>
+            <div className="flex flex-wrap gap-3 rounded-md border p-3">
+              {PACK_SIZES.map((size) => (
+                <label key={size} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={(values.pack_sizes ?? []).includes(size)}
+                    onCheckedChange={() => togglePackSize(size)}
+                  />
+                  {size}
+                </label>
+              ))}
+            </div>
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
             <Label>Products interested in</Label>
-            <div className="flex flex-wrap gap-3 rounded-md border p-3">
-              {products.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No products in the catalog yet — add some in Admin.
-                </p>
-              ) : (
-                products.map((product) => (
-                  <label
-                    key={product.id}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <Checkbox
-                      checked={productIds.includes(product.id)}
-                      onCheckedChange={() => toggleProduct(product.id)}
-                    />
-                    {product.name}
-                  </label>
-                ))
-              )}
-            </div>
+            <ProductChecklist
+              products={products}
+              selectedIds={productIds}
+              onToggle={toggleProduct}
+            />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="proposed_volume">Proposed volume</Label>

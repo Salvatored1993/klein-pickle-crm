@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { ProductChecklist } from "@/components/products/product-checklist";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -202,23 +202,11 @@ export function CustomerForm({
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
             <Label>Products purchased</Label>
-            <div className="flex flex-wrap gap-3 rounded-md border p-3">
-              {products.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No products in the catalog yet — add some in Admin.
-                </p>
-              ) : (
-                products.map((product) => (
-                  <label key={product.id} className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={productIds.includes(product.id)}
-                      onCheckedChange={() => toggleProduct(product.id)}
-                    />
-                    {product.name}
-                  </label>
-                ))
-              )}
-            </div>
+            <ProductChecklist
+              products={products}
+              selectedIds={productIds}
+              onToggle={toggleProduct}
+            />
           </div>
         </CardContent>
       </Card>

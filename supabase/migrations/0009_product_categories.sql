@@ -1,0 +1,58 @@
+alter table public.products add column category text not null default 'Other';
+
+insert into public.products (name, category) values
+  ('Whole Koshers', 'Kosher Pickles'),
+  ('Kosher Chips', 'Kosher Pickles'),
+  ('Kosher Spears', 'Kosher Pickles'),
+  ('Kosher Spears Extra Garlic', 'Kosher Pickles'),
+  ('Kosher Slabs', 'Kosher Pickles'),
+  ('Kosher Pickle Fries', 'Kosher Pickles'),
+  ('Half Sour Pickles', 'Kosher Pickles'),
+  ('Full Sour Pickles', 'Kosher Pickles'),
+
+  ('Sauerkraut', 'Specialty Products'),
+  ('Sweet Butter Chips', 'Specialty Products'),
+  ('Sweet Pepper Strips', 'Specialty Products'),
+
+  ('Hot Cauliflower', 'Pickled Peppers'),
+  ('So Hot Mix', 'Pickled Peppers'),
+  ('Yellow Hots', 'Pickled Peppers'),
+  ('Cherry Peppers', 'Pickled Peppers'),
+  ('Sport Peppers', 'Pickled Peppers'),
+  ('Mild Pepper Rings', 'Pickled Peppers'),
+  ('Hot Pepper Rings', 'Pickled Peppers'),
+  ('Imported Pepperoncini', 'Pickled Peppers'),
+  ('Sliced Pepperoncini', 'Pickled Peppers'),
+  ('Whole Jalapenos', 'Pickled Peppers'),
+  ('Sliced Jalapenos', 'Pickled Peppers'),
+  ('Whole Pepperoncini', 'Pickled Peppers'),
+  ('Mixed Peppers', 'Pickled Peppers'),
+
+  ('Dill Chips', 'Dill Pickles'),
+  ('Whole Dills', 'Dill Pickles'),
+  ('Hot Whole Dills', 'Dill Pickles'),
+  ('Dill Spears', 'Dill Pickles'),
+  ('Dill Pickles', 'Dill Pickles'),
+  ('Hot Dill Pickles', 'Dill Pickles'),
+  ('Single Serve Dill Pickles', 'Dill Pickles'),
+  ('Single Serve Hot Dill Pickles', 'Dill Pickles'),
+  ('Single Serve Kosher Dill Pickles', 'Dill Pickles'),
+  ('Single Serve Chamoy Dill Pickles', 'Dill Pickles'),
+
+  ('Barbecue Sauce', 'Barbecue Sauce & Relish'),
+  ('Chicago Style Green Relish', 'Barbecue Sauce & Relish'),
+  ('Spicy Sweet Relish', 'Barbecue Sauce & Relish'),
+  ('Dill Relish', 'Barbecue Sauce & Relish'),
+  ('Sweet Relish', 'Barbecue Sauce & Relish'),
+
+  ('Kosher Dill Pickles', 'Retail Items'),
+  ('Sliced Dills', 'Retail Items'),
+  ('Sweet Gherkins', 'Retail Items'),
+  ('Chili Encurtidos', 'Retail Items'),
+  ('Pepperoncini', 'Retail Items'),
+  ('Hot Dill Gherkins', 'Retail Items'),
+  ('Dill Gherkins', 'Retail Items'),
+  ('Chilitos Encurtidos', 'Retail Items'),
+  ('Chilitos Rings', 'Retail Items'),
+  ('Nacho Sliced Jalapenos', 'Retail Items')
+on conflict (name) do nothing;

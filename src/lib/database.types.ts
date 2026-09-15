@@ -52,6 +52,15 @@ export type SampleTrialStatus =
   | "Trial Failed"
   | "Approved";
 
+export type PackSize =
+  | "16 oz"
+  | "32 oz"
+  | "1 Gallon"
+  | "2 Gallon"
+  | "5 Gallon"
+  | "Barrel"
+  | "Tote";
+
 export type TaskStatus = "Open" | "In Progress" | "Done" | "Cancelled";
 export type TaskPriority = "Low" | "Medium" | "High";
 export type ActivityType =
@@ -90,11 +99,13 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          category: string;
           is_active: boolean;
         };
         Insert: {
           id?: string;
           name: string;
+          category?: string;
           is_active?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
@@ -112,7 +123,7 @@ export interface Database {
           lead_source: LeadSource | null;
           specific_source: string | null;
           customer_type: CustomerType | null;
-          pack_size_format: string | null;
+          pack_sizes: PackSize[];
           proposed_volume: number | null;
           volume_unit: string | null;
           estimated_annual_volume: number | null;
@@ -148,7 +159,7 @@ export interface Database {
           lead_source?: LeadSource | null;
           specific_source?: string | null;
           customer_type?: CustomerType | null;
-          pack_size_format?: string | null;
+          pack_sizes?: PackSize[];
           proposed_volume?: number | null;
           volume_unit?: string | null;
           estimated_annual_volume?: number | null;

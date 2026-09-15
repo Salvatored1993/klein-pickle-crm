@@ -4,7 +4,18 @@ import type {
   CustomerType,
   FreightTerms,
   SampleTrialStatus,
+  PackSize,
 } from "@/lib/database.types";
+
+export const PACK_SIZES: PackSize[] = [
+  "16 oz",
+  "32 oz",
+  "1 Gallon",
+  "2 Gallon",
+  "5 Gallon",
+  "Barrel",
+  "Tote",
+];
 
 export const SALES_STAGES: SalesStage[] = [
   "New Lead",
