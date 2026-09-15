@@ -7,6 +7,8 @@ import type {
   PackSize,
 } from "@/lib/database.types";
 
+export const COMPANY_FACILITY_ADDRESS = "4125 W. Witten Ave";
+
 export const PACK_SIZES: PackSize[] = [
   "16 oz",
   "32 oz",

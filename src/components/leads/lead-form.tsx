@@ -19,6 +19,7 @@ import {
   CUSTOMER_TYPES,
   FREIGHT_TERMS_OPTIONS,
   SAMPLE_TRIAL_STATUSES,
+  COMPANY_FACILITY_ADDRESS,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -350,15 +351,55 @@ export function LeadForm({
               onChange={(e) => set("distributor", e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="ship_to_locations">Ship-to locations</Label>
-            <Textarea
-              id="ship_to_locations"
-              rows={2}
-              value={values.ship_to_locations ?? ""}
-              onChange={(e) => set("ship_to_locations", e.target.value)}
-            />
-          </div>
+          {values.freight_terms === "FOB Origin" ? (
+            <p className="text-sm text-muted-foreground sm:col-span-2">
+              Ships from Klein Pickle&apos;s facility — {COMPANY_FACILITY_ADDRESS}. No
+              destination address needed.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-col gap-2 sm:col-span-2">
+                <Label htmlFor="ship_to_address">Ship-to address</Label>
+                <Input
+                  id="ship_to_address"
+                  value={values.ship_to_address ?? ""}
+                  onChange={(e) => set("ship_to_address", e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="ship_to_city">City</Label>
+                <Input
+                  id="ship_to_city"
+                  value={values.ship_to_city ?? ""}
+                  onChange={(e) => set("ship_to_city", e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="ship_to_state">State</Label>
+                <Input
+                  id="ship_to_state"
+                  value={values.ship_to_state ?? ""}
+                  onChange={(e) => set("ship_to_state", e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="ship_to_zip">ZIP code</Label>
+                <Input
+                  id="ship_to_zip"
+                  value={values.ship_to_zip ?? ""}
+                  onChange={(e) => set("ship_to_zip", e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="ship_to_country">Country</Label>
+                <Input
+                  id="ship_to_country"
+                  value={values.ship_to_country ?? "United States"}
+                  onChange={(e) => set("ship_to_country", e.target.value)}
+                />
+              </div>
+            </>
+          )}
           <div className="flex items-center justify-between rounded-md border p-3">
             <Label htmlFor="broker_involved">Broker involved</Label>
             <Switch
@@ -368,21 +409,39 @@ export function LeadForm({
             />
           </div>
           {values.broker_involved ? (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="broker_commission_pct">Broker commission %</Label>
-              <Input
-                id="broker_commission_pct"
-                type="number"
-                step="0.1"
-                value={values.broker_commission_pct ?? ""}
-                onChange={(e) =>
-                  set(
-                    "broker_commission_pct",
-                    e.target.value ? Number(e.target.value) : null,
-                  )
-                }
-              />
-            </div>
+            <>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="broker_name">Broker name</Label>
+                <Input
+                  id="broker_name"
+                  value={values.broker_name ?? ""}
+                  onChange={(e) => set("broker_name", e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="broker_company">Broker company</Label>
+                <Input
+                  id="broker_company"
+                  value={values.broker_company ?? ""}
+                  onChange={(e) => set("broker_company", e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="broker_commission_pct">Broker commission %</Label>
+                <Input
+                  id="broker_commission_pct"
+                  type="number"
+                  step="0.1"
+                  value={values.broker_commission_pct ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "broker_commission_pct",
+                      e.target.value ? Number(e.target.value) : null,
+                    )
+                  }
+                />
+              </div>
+            </>
           ) : null}
         </CardContent>
       </Card>

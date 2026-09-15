@@ -33,10 +33,16 @@ const LEAD_WRITABLE_FIELDS = [
   "specific_source",
   "customer_type",
   "freight_terms",
-  "ship_to_locations",
+  "ship_to_address",
+  "ship_to_city",
+  "ship_to_state",
+  "ship_to_zip",
+  "ship_to_country",
   "distributor",
   "broker_involved",
   "broker_commission_pct",
+  "broker_name",
+  "broker_company",
   "sample_required",
   "sample_trial_status",
   "current_supplier",
@@ -124,6 +130,15 @@ export async function convertLeadToCustomer(leadId: string) {
     return lead.converted_customer_id;
   }
 
+  const shipToLocation = [
+    lead.ship_to_address,
+    lead.ship_to_city,
+    [lead.ship_to_state, lead.ship_to_zip].filter(Boolean).join(" "),
+    lead.ship_to_country,
+  ]
+    .filter(Boolean)
+    .join(", ") || null;
+
   const { data: customer, error: customerError } = await supabase
     .from("customers")
     .insert({
@@ -132,7 +147,7 @@ export async function convertLeadToCustomer(leadId: string) {
       primary_contact_name: lead.primary_contact_name,
       contact_email: lead.contact_email,
       contact_phone: lead.contact_phone,
-      ship_to_locations: lead.ship_to_locations,
+      ship_to_locations: shipToLocation,
       customer_type: lead.customer_type,
       distributor: lead.distributor,
       notes: lead.notes,
