@@ -16,6 +16,48 @@ export type LeadProductLineItem = {
   targetPrice: number | null;
 };
 
+// Callers (e.g. the lead form) sometimes seed their state from
+// leads_with_totals, a view that adds a computed estimated_annual_sales
+// total on top of the real `leads` columns — that field, or anything else
+// not an actual column, would make Postgres reject the whole write.
+// Whitelist to the real writable columns rather than trusting the shape
+// of whatever object comes in.
+const LEAD_WRITABLE_FIELDS = [
+  "salesperson_id",
+  "company_name",
+  "primary_contact_name",
+  "contact_email",
+  "contact_phone",
+  "lead_date",
+  "lead_source",
+  "specific_source",
+  "customer_type",
+  "freight_terms",
+  "ship_to_locations",
+  "distributor",
+  "broker_involved",
+  "broker_commission_pct",
+  "sample_required",
+  "sample_trial_status",
+  "current_supplier",
+  "reason_for_opportunity",
+  "expected_start_date",
+  "sales_stage",
+  "probability_to_close",
+  "next_action",
+  "next_follow_up_date",
+  "notes",
+  "lost_reason",
+] as const satisfies readonly (keyof LeadInput)[];
+
+function sanitizeLeadInput(input: Record<string, unknown>): LeadInput {
+  const safe: Record<string, unknown> = {};
+  for (const key of LEAD_WRITABLE_FIELDS) {
+    if (key in input) safe[key] = input[key];
+  }
+  return safe as LeadInput;
+}
+
 async function syncLeadProducts(
   supabase: Awaited<ReturnType<typeof createClient>>,
   leadId: string,
@@ -43,7 +85,7 @@ export async function createLead(input: LeadInput, lineItems: LeadProductLineIte
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("leads")
-    .insert(input)
+    .insert(sanitizeLeadInput(input))
     .select("id")
     .single();
 
@@ -60,7 +102,7 @@ export async function updateLead(
   lineItems: LeadProductLineItem[],
 ) {
   const supabase = await createClient();
-  const { error } = await supabase.from("leads").update(input).eq("id", id);
+  const { error } = await supabase.from("leads").update(sanitizeLeadInput(input)).eq("id", id);
   if (error) throw error;
 
   await syncLeadProducts(supabase, id, lineItems);

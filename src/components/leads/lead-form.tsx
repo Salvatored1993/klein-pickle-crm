@@ -48,7 +48,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type Lead = Database["public"]["Tables"]["leads"]["Row"];
+// The lead prop actually comes from the leads_with_totals view (it carries
+// a computed estimated_annual_sales total, summed from lead_products) —
+// type it as such so that field can be explicitly stripped before ever
+// reaching an update payload, since it isn't a real column on `leads`.
+type Lead = Database["public"]["Views"]["leads_with_totals"]["Row"];
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
@@ -75,18 +79,26 @@ export function LeadForm({
   const [isPending, startTransition] = useTransition();
   const [probabilityTouched, setProbabilityTouched] = useState(mode === "edit");
 
-  const [values, setValues] = useState<LeadInput>(
-    lead ?? {
-      salesperson_id: currentUser.id,
-      company_name: "",
-      lead_date: todayISO(),
-      sales_stage: "New Lead",
-      probability_to_close: STAGE_DEFAULT_PROBABILITY["New Lead"],
-      sample_required: false,
-      broker_involved: false,
-      sample_trial_status: "Not Required",
-    },
-  );
+  const [values, setValues] = useState<LeadInput>(() => {
+    if (!lead) {
+      return {
+        salesperson_id: currentUser.id,
+        company_name: "",
+        lead_date: todayISO(),
+        sales_stage: "New Lead",
+        probability_to_close: STAGE_DEFAULT_PROBABILITY["New Lead"],
+        sample_required: false,
+        broker_involved: false,
+        sample_trial_status: "Not Required",
+      };
+    }
+    // estimated_annual_sales is a computed rollup from leads_with_totals,
+    // not a real column on `leads` — must be stripped before it can ever
+    // reach an update/insert payload.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to omit it from leadFields
+    const { estimated_annual_sales: _estimatedAnnualSales, ...leadFields } = lead;
+    return leadFields;
+  });
   const [lineItems, setLineItems] = useState<LeadProductLineItem[]>(initialLineItems);
   const [showConvertPrompt, setShowConvertPrompt] = useState(false);
   const [isConverting, startConverting] = useTransition();
