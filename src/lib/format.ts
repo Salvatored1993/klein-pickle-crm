@@ -3,11 +3,13 @@ import type { Database } from "@/lib/database.types";
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export function profileName(
-  profiles: Pick<Profile, "id" | "full_name">[],
+  profiles: Pick<Profile, "id" | "full_name" | "email">[],
   id: string | null,
 ) {
   if (!id) return null;
-  return profiles.find((p) => p.id === id)?.full_name ?? "Unknown";
+  const profile = profiles.find((p) => p.id === id);
+  if (!profile) return "Unknown";
+  return profile.full_name ?? profile.email ?? "Unknown";
 }
 
 export function formatDate(value: string | null) {
