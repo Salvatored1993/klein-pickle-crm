@@ -28,7 +28,7 @@ export default async function AppLayout({
           <SidebarNav role={user.role} />
         </div>
         <div className="border-t p-2">
-          <UserMenu fullName={user.full_name} role={user.role} />
+          <UserMenu fullName={user.full_name} email={user.email} role={user.role} />
         </div>
       </aside>
 
@@ -37,7 +37,7 @@ export default async function AppLayout({
           <Link href="/leads" className="text-sm font-semibold">
             Klein Pickle CRM
           </Link>
-          <UserMenu fullName={user.full_name} role={user.role} />
+          <UserMenu fullName={user.full_name} email={user.email} role={user.role} />
         </header>
 
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">

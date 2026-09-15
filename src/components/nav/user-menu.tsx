@@ -16,7 +16,8 @@ import { LogOut } from "lucide-react";
 function initials(name: string | null) {
   if (!name) return "?";
   return name
-    .split(" ")
+    .split(/[\s@.]+/)
+    .filter(Boolean)
     .map((part) => part[0])
     .slice(0, 2)
     .join("")
@@ -25,11 +26,15 @@ function initials(name: string | null) {
 
 export function UserMenu({
   fullName,
+  email,
   role,
 }: {
   fullName: string | null;
+  email: string | null;
   role: string;
 }) {
+  const displayName = fullName ?? email ?? "Unnamed user";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -41,12 +46,10 @@ export function UserMenu({
         }
       >
         <Avatar className="size-8">
-          <AvatarFallback>{initials(fullName)}</AvatarFallback>
+          <AvatarFallback>{initials(displayName)}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col items-start text-left">
-          <span className="text-sm font-medium leading-none">
-            {fullName ?? "Unnamed user"}
-          </span>
+          <span className="text-sm font-medium leading-none">{displayName}</span>
           <span className="text-xs capitalize text-muted-foreground">
             {role}
           </span>
