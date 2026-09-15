@@ -116,10 +116,11 @@ export function LeadForm({
     mode === "create" ||
     currentUser.role === "admin" ||
     currentUser.id === lead?.salesperson_id;
-  const ownerName = lead
-    ? (salespeople.find((p) => p.id === lead.salesperson_id)?.full_name ??
-      "another salesperson")
-    : null;
+  const leadOwner = lead
+    ? salespeople.find((p) => p.id === lead.salesperson_id)
+    : undefined;
+  const ownerName = leadOwner?.full_name ?? leadOwner?.email ?? "another salesperson";
+  const assignedSalesperson = salespeople.find((p) => p.id === values.salesperson_id);
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4 pb-24 md:pb-6">
@@ -154,7 +155,10 @@ export function LeadForm({
                 </SelectContent>
               </Select>
             ) : (
-              <Input value={currentUser.full_name ?? currentUser.email ?? ""} disabled />
+              <Input
+                value={assignedSalesperson?.full_name ?? assignedSalesperson?.email ?? ""}
+                disabled
+              />
             )}
           </div>
           <div className="flex flex-col gap-2">

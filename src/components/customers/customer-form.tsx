@@ -89,10 +89,11 @@ export function CustomerForm({
     mode === "create" ||
     currentUser.role === "admin" ||
     currentUser.id === customer?.salesperson_id;
-  const ownerName = customer
-    ? (salespeople.find((p) => p.id === customer.salesperson_id)?.full_name ??
-      "another salesperson")
-    : null;
+  const accountOwner = customer
+    ? salespeople.find((p) => p.id === customer.salesperson_id)
+    : undefined;
+  const ownerName = accountOwner?.full_name ?? accountOwner?.email ?? "another salesperson";
+  const assignedSalesperson = salespeople.find((p) => p.id === values.salesperson_id);
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4 pb-24 md:pb-6">
@@ -127,7 +128,10 @@ export function CustomerForm({
                 </SelectContent>
               </Select>
             ) : (
-              <Input value={currentUser.full_name ?? currentUser.email ?? ""} disabled />
+              <Input
+                value={assignedSalesperson?.full_name ?? assignedSalesperson?.email ?? ""}
+                disabled
+              />
             )}
           </div>
           <div className="flex flex-col gap-2">
