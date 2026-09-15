@@ -40,5 +40,12 @@ export async function getCustomer(id: string) {
 
   if (productsError) throw productsError;
 
-  return { customer, productIds: customerProducts.map((p) => p.product_id) };
+  // Custom (non-catalog) products carry a null product_id and aren't
+  // represented in the catalog checklist yet — only surface real ones.
+  return {
+    customer,
+    productIds: customerProducts
+      .map((p) => p.product_id)
+      .filter((productId): productId is string => productId !== null),
+  };
 }

@@ -59,7 +59,8 @@ export type PackSize =
   | "2 Gallon"
   | "5 Gallon"
   | "Barrel"
-  | "Tote";
+  | "Tote"
+  | "Other";
 
 export type TaskStatus = "Open" | "In Progress" | "Done" | "Cancelled";
 export type TaskPriority = "Low" | "Medium" | "High";
@@ -191,8 +192,12 @@ export interface Database {
       };
       lead_products: {
         Row: {
+          id: string;
           lead_id: string;
-          product_id: string;
+          product_id: string | null;
+          custom_product_name: string | null;
+          custom_pack_size: string | null;
+          custom_specs: string | null;
           pack_sizes: PackSize[];
           proposed_volume: number | null;
           volume_unit: string | null;
@@ -201,8 +206,12 @@ export interface Database {
           target_price: number | null;
         };
         Insert: {
+          id?: string;
           lead_id: string;
-          product_id: string;
+          product_id?: string | null;
+          custom_product_name?: string | null;
+          custom_pack_size?: string | null;
+          custom_specs?: string | null;
           pack_sizes?: PackSize[];
           proposed_volume?: number | null;
           volume_unit?: string | null;
@@ -258,8 +267,20 @@ export interface Database {
         Relationships: [];
       };
       customer_products: {
-        Row: { customer_id: string; product_id: string };
-        Insert: { customer_id: string; product_id: string };
+        Row: {
+          id: string;
+          customer_id: string;
+          product_id: string | null;
+          custom_product_name: string | null;
+          custom_specs: string | null;
+        };
+        Insert: {
+          id?: string;
+          customer_id: string;
+          product_id?: string | null;
+          custom_product_name?: string | null;
+          custom_specs?: string | null;
+        };
         Update: Partial<
           Database["public"]["Tables"]["customer_products"]["Insert"]
         >;

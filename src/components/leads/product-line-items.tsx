@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,8 +22,14 @@ import {
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
-const EMPTY_STAGING: Omit<LeadProductLineItem, "productId"> = {
+const CUSTOM_PRODUCT = "__custom__";
+
+type Staging = Omit<LeadProductLineItem, "productId" | "customProductName">;
+
+const EMPTY_STAGING: Staging = {
+  customSpecs: null,
   packSizes: [],
+  customPackSize: null,
   proposedVolume: null,
   volumeUnit: null,
   estimatedAnnualVolume: null,
@@ -49,7 +56,8 @@ export function ProductLineItems({
   onChange: (value: LeadProductLineItem[]) => void;
 }) {
   const [stagingProductId, setStagingProductId] = useState<string>("");
-  const [staging, setStaging] = useState(EMPTY_STAGING);
+  const [stagingCustomName, setStagingCustomName] = useState("");
+  const [staging, setStaging] = useState<Staging>(EMPTY_STAGING);
 
   const groups = new Map<string, Product[]>();
   for (const product of products) {
@@ -57,59 +65,101 @@ export function ProductLineItems({
     groups.get(product.category)!.push(product);
   }
 
-  function setStagingField<K extends keyof typeof EMPTY_STAGING>(
-    key: K,
-    val: (typeof EMPTY_STAGING)[K],
-  ) {
+  const isCustom = stagingProductId === CUSTOM_PRODUCT;
+
+  function setStagingField<K extends keyof Staging>(key: K, val: Staging[K]) {
     setStaging((prev) => ({ ...prev, [key]: val }));
   }
 
   function toggleStagingSize(size: PackSize) {
-    setStaging((prev) => ({
-      ...prev,
-      packSizes: prev.packSizes.includes(size)
-        ? prev.packSizes.filter((s) => s !== size)
-        : [...prev.packSizes, size],
-    }));
+    setStaging((prev) => {
+      const isTurningOff = prev.packSizes.includes(size);
+      return {
+        ...prev,
+        packSizes: isTurningOff
+          ? prev.packSizes.filter((s) => s !== size)
+          : [...prev.packSizes, size],
+        customPackSize: size === "Other" && isTurningOff ? null : prev.customPackSize,
+      };
+    });
+  }
+
+  function resetStaging() {
+    setStagingProductId("");
+    setStagingCustomName("");
+    setStaging(EMPTY_STAGING);
   }
 
   function addOrUpdateLineItem() {
     if (!stagingProductId) return;
-    const next = value.filter((item) => item.productId !== stagingProductId);
-    next.push({ productId: stagingProductId, ...staging });
+    if (isCustom && !stagingCustomName.trim()) return;
+
+    const newItem: LeadProductLineItem = {
+      productId: isCustom ? null : stagingProductId,
+      customProductName: isCustom ? stagingCustomName.trim() : null,
+      customSpecs: staging.customSpecs?.trim() || null,
+      packSizes: staging.packSizes,
+      customPackSize: staging.packSizes.includes("Other")
+        ? staging.customPackSize?.trim() || null
+        : null,
+      proposedVolume: staging.proposedVolume,
+      volumeUnit: staging.volumeUnit,
+      estimatedAnnualVolume: staging.estimatedAnnualVolume,
+      estimatedAnnualSales: staging.estimatedAnnualSales,
+      targetPrice: staging.targetPrice,
+    };
+
+    const next = isCustom
+      ? [...value, newItem]
+      : [...value.filter((item) => item.productId !== stagingProductId), newItem];
+
     onChange(next);
-    setStagingProductId("");
-    setStaging(EMPTY_STAGING);
+    resetStaging();
   }
 
-  function removeLineItem(productId: string) {
-    onChange(value.filter((item) => item.productId !== productId));
+  function removeLineItem(index: number) {
+    onChange(value.filter((_, i) => i !== index));
   }
 
-  function editLineItem(item: LeadProductLineItem) {
-    setStagingProductId(item.productId);
+  function editLineItem(index: number) {
+    const item = value[index];
+    setStagingProductId(item.productId ?? CUSTOM_PRODUCT);
+    setStagingCustomName(item.customProductName ?? "");
     setStaging({
+      customSpecs: item.customSpecs,
       packSizes: item.packSizes,
+      customPackSize: item.customPackSize,
       proposedVolume: item.proposedVolume,
       volumeUnit: item.volumeUnit,
       estimatedAnnualVolume: item.estimatedAnnualVolume,
       estimatedAnnualSales: item.estimatedAnnualSales,
       targetPrice: item.targetPrice,
     });
-    onChange(value.filter((v) => v.productId !== item.productId));
+    onChange(value.filter((_, i) => i !== index));
   }
 
   function productName(id: string) {
     return products.find((p) => p.id === id)?.name ?? "Unknown product";
   }
 
+  function lineItemLabel(item: LeadProductLineItem) {
+    return item.productId ? productName(item.productId) : (item.customProductName ?? "Custom product");
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {value.length > 0 ? (
         <ul className="flex flex-col gap-2">
-          {value.map((item) => {
+          {value.map((item, index) => {
+            const sizeLabel =
+              item.packSizes.length > 0
+                ? item.packSizes
+                    .map((s) => (s === "Other" && item.customPackSize ? `Other (${item.customPackSize})` : s))
+                    .join(", ")
+                : null;
+
             const details = [
-              item.packSizes.length > 0 ? item.packSizes.join(", ") : null,
+              sizeLabel,
               item.proposedVolume
                 ? `${item.proposedVolume} ${item.volumeUnit ?? "units"} proposed`
                 : null,
@@ -122,19 +172,23 @@ export function ProductLineItems({
               formatCurrencyShort(item.targetPrice)
                 ? `${formatCurrencyShort(item.targetPrice)} target`
                 : null,
+              item.customSpecs ? `Specs: ${item.customSpecs}` : null,
             ].filter(Boolean);
 
             return (
               <li
-                key={item.productId}
+                key={index}
                 className="flex items-start justify-between gap-2 rounded-md border p-2"
               >
                 <button
                   type="button"
-                  onClick={() => editLineItem(item)}
+                  onClick={() => editLineItem(index)}
                   className="flex-1 text-left text-sm hover:underline"
                 >
-                  <span className="font-medium">{productName(item.productId)}</span>
+                  <span className="font-medium">{lineItemLabel(item)}</span>
+                  {!item.productId ? (
+                    <span className="ml-1 text-xs text-muted-foreground">(Custom)</span>
+                  ) : null}
                   {details.length > 0 ? (
                     <span className="text-muted-foreground"> — {details.join(" · ")}</span>
                   ) : (
@@ -145,7 +199,7 @@ export function ProductLineItems({
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => removeLineItem(item.productId)}
+                  onClick={() => removeLineItem(index)}
                 >
                   <X className="size-4" />
                 </Button>
@@ -163,10 +217,18 @@ export function ProductLineItems({
         <Select value={stagingProductId} onValueChange={(v) => setStagingProductId(v ?? "")}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Choose a product">
-              {(v: string | null) => (v ? productName(v) : "Choose a product")}
+              {(v: string | null) => {
+                if (!v) return "Choose a product";
+                if (v === CUSTOM_PRODUCT) return "Other / custom product…";
+                return productName(v);
+              }}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Custom</SelectLabel>
+              <SelectItem value={CUSTOM_PRODUCT}>Other / custom product…</SelectItem>
+            </SelectGroup>
             {Array.from(groups.entries()).map(([category, items]) => (
               <SelectGroup key={category}>
                 <SelectLabel>{category}</SelectLabel>
@@ -180,6 +242,20 @@ export function ProductLineItems({
           </SelectContent>
         </Select>
 
+        {isCustom ? (
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-xs text-muted-foreground" htmlFor="li-custom-name">
+              Custom product name
+            </Label>
+            <Input
+              id="li-custom-name"
+              placeholder="e.g. Relish without any red coloring"
+              value={stagingCustomName}
+              onChange={(e) => setStagingCustomName(e.target.value)}
+            />
+          </div>
+        ) : null}
+
         <div className="flex flex-col gap-2">
           <Label className="text-xs text-muted-foreground">Pack size(s)</Label>
           <div className="flex flex-wrap gap-3">
@@ -192,7 +268,34 @@ export function ProductLineItems({
                 {size}
               </label>
             ))}
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={staging.packSizes.includes("Other")}
+                onCheckedChange={() => toggleStagingSize("Other")}
+              />
+              Other
+            </label>
           </div>
+          {staging.packSizes.includes("Other") ? (
+            <Input
+              placeholder="Describe the size, e.g. 55 gal drum"
+              value={staging.customPackSize ?? ""}
+              onChange={(e) => setStagingField("customPackSize", e.target.value || null)}
+            />
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label className="text-xs text-muted-foreground" htmlFor="li-specs">
+            Special specs / requirements
+          </Label>
+          <Textarea
+            id="li-specs"
+            rows={2}
+            placeholder="Anything specific about how this product needs to be made or packed"
+            value={staging.customSpecs ?? ""}
+            onChange={(e) => setStagingField("customSpecs", e.target.value || null)}
+          />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -276,11 +379,11 @@ export function ProductLineItems({
           variant="outline"
           size="sm"
           className="self-start"
-          disabled={!stagingProductId}
+          disabled={!stagingProductId || (isCustom && !stagingCustomName.trim())}
           onClick={addOrUpdateLineItem}
         >
           <Plus className="size-4" />
-          {value.some((i) => i.productId === stagingProductId)
+          {!isCustom && value.some((i) => i.productId === stagingProductId)
             ? "Update product"
             : "Add product"}
         </Button>

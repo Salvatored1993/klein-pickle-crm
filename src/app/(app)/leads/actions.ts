@@ -7,8 +7,11 @@ import type { Database, PackSize } from "@/lib/database.types";
 
 export type LeadInput = Database["public"]["Tables"]["leads"]["Insert"];
 export type LeadProductLineItem = {
-  productId: string;
+  productId: string | null;
+  customProductName: string | null;
+  customSpecs: string | null;
   packSizes: PackSize[];
+  customPackSize: string | null;
   proposedVolume: number | null;
   volumeUnit: string | null;
   estimatedAnnualVolume: number | null;
@@ -75,6 +78,9 @@ async function syncLeadProducts(
       lineItems.map((item) => ({
         lead_id: leadId,
         product_id: item.productId,
+        custom_product_name: item.customProductName,
+        custom_pack_size: item.customPackSize,
+        custom_specs: item.customSpecs,
         pack_sizes: item.packSizes,
         proposed_volume: item.proposedVolume,
         volume_unit: item.volumeUnit,
@@ -158,13 +164,18 @@ export async function convertLeadToCustomer(leadId: string) {
 
   const { data: leadProducts, error: productsError } = await supabase
     .from("lead_products")
-    .select("product_id")
+    .select("product_id, custom_product_name, custom_specs")
     .eq("lead_id", leadId);
   if (productsError) throw productsError;
 
   if (leadProducts.length > 0) {
     const { error: insertError } = await supabase.from("customer_products").insert(
-      leadProducts.map((p) => ({ customer_id: customer.id, product_id: p.product_id })),
+      leadProducts.map((p) => ({
+        customer_id: customer.id,
+        product_id: p.product_id,
+        custom_product_name: p.custom_product_name,
+        custom_specs: p.custom_specs,
+      })),
     );
     if (insertError) throw insertError;
   }

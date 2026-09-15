@@ -41,7 +41,7 @@ export async function getLead(id: string) {
   const { data: leadProducts, error: productsError } = await supabase
     .from("lead_products")
     .select(
-      "product_id, pack_sizes, proposed_volume, volume_unit, estimated_annual_volume, estimated_annual_sales, target_price",
+      "product_id, custom_product_name, custom_pack_size, custom_specs, pack_sizes, proposed_volume, volume_unit, estimated_annual_volume, estimated_annual_sales, target_price",
     )
     .eq("lead_id", id);
 
@@ -51,6 +51,9 @@ export async function getLead(id: string) {
     lead,
     lineItems: leadProducts.map((p) => ({
       productId: p.product_id,
+      customProductName: p.custom_product_name,
+      customPackSize: p.custom_pack_size,
+      customSpecs: p.custom_specs,
       packSizes: p.pack_sizes,
       proposedVolume: p.proposed_volume,
       volumeUnit: p.volume_unit,
