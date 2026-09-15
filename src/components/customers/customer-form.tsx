@@ -117,7 +117,13 @@ export function CustomerForm({
                 onValueChange={(v) => v && set("salesperson_id", v)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue>
+                    {(v: string | null) =>
+                      salespeople.find((p) => p.id === v)?.full_name ??
+                      salespeople.find((p) => p.id === v)?.email ??
+                      ""
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {salespeople.map((p) => (

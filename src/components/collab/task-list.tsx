@@ -169,7 +169,15 @@ function NewTaskForm({
           <Label>Assign to</Label>
           <Select value={assignedTo} onValueChange={(v) => setAssignedTo(v ?? "")}>
             <SelectTrigger>
-              <SelectValue placeholder="Unassigned" />
+              <SelectValue placeholder="Unassigned">
+                {(v: string | null) =>
+                  v
+                    ? (profiles.find((p) => p.id === v)?.full_name ??
+                      profiles.find((p) => p.id === v)?.email ??
+                      "Unassigned")
+                    : "Unassigned"
+                }
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {profiles.map((p) => (
