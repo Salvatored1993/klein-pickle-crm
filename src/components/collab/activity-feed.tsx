@@ -4,27 +4,12 @@ import { useRef, useTransition } from "react";
 import { addComment } from "@/lib/actions/collab";
 import type { Database } from "@/lib/database.types";
 import { profileName, formatDateTime } from "@/lib/format";
+import { describeActivity } from "@/lib/activity";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 type Activity = Database["public"]["Tables"]["activity"]["Row"];
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-
-function describeActivity(activity: Activity) {
-  const meta = (activity.metadata ?? {}) as Record<string, string>;
-  switch (activity.activity_type) {
-    case "lead_created":
-      return "created this lead";
-    case "customer_created":
-      return "added this customer";
-    case "stage_change":
-      return `moved the stage from ${meta.from_stage} to ${meta.to_stage}`;
-    case "checkin":
-      return "logged a check-in";
-    default:
-      return null;
-  }
-}
 
 export function ActivityFeed({
   target,
