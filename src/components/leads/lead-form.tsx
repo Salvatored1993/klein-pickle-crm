@@ -127,8 +127,8 @@ export function LeadForm({
         } else if (lead) {
           await updateLead(lead.id, values, lineItems);
           toast.success("Lead updated");
-          const justWon = lead.sales_stage !== "Won" && values.sales_stage === "Won";
-          if (justWon && !lead.converted_customer_id) {
+          const isWon = values.sales_stage === "Won";
+          if (isWon && !lead.converted_customer_id) {
             setShowConvertPrompt(true);
           } else {
             router.refresh();
@@ -553,7 +553,7 @@ export function LeadForm({
           <DialogHeader>
             <DialogTitle>Convert to a customer?</DialogTitle>
             <DialogDescription>
-              {lead?.company_name} just moved to Won. Add it to{" "}
+              {lead?.company_name} is marked Won. Add it to{" "}
               {assignedSalesperson?.full_name ?? assignedSalesperson?.email ?? "your"}
               &apos;s customer base so it shows up for ongoing check-ins?
             </DialogDescription>
