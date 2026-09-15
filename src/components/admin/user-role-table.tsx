@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setUserRole, setUserActive } from "@/app/(app)/admin/actions";
 import type { Database, UserRole } from "@/lib/database.types";
+import { displayName } from "@/lib/format";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -41,7 +42,7 @@ export function UserRoleTable({
           >
             <div>
               <p className="text-sm font-medium">
-                {profile.full_name ?? "Unnamed"}
+                {displayName(profile.full_name, profile.email)}
                 {profile.id === currentUserId ? " (you)" : ""}
               </p>
               <p className="text-xs text-muted-foreground">{profile.email}</p>

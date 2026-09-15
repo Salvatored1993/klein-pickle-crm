@@ -2,7 +2,7 @@ import Link from "next/link";
 import { listSalespeople } from "@/lib/queries/profiles";
 import { listLeads } from "@/lib/queries/leads";
 import { listCustomers } from "@/lib/queries/customers";
-import { formatCurrency, isOverdue } from "@/lib/format";
+import { formatCurrency, isOverdue, displayName } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -44,7 +44,9 @@ export default async function TeamPage() {
           <Link key={person.id} href={`/team/${person.id}`}>
             <Card className="h-full transition-colors hover:bg-muted/50">
               <CardHeader>
-                <CardTitle className="text-base">{person.full_name ?? person.email}</CardTitle>
+                <CardTitle className="text-base">
+                  {displayName(person.full_name, person.email)}
+                </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-1 text-sm text-muted-foreground">
                 <p>

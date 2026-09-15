@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { createTask, setTaskStatus } from "@/lib/actions/collab";
 import type { Database, TaskPriority } from "@/lib/database.types";
-import { profileName, formatDate } from "@/lib/format";
+import { profileName, displayName, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -170,19 +170,13 @@ function NewTaskForm({
           <Select value={assignedTo} onValueChange={(v) => setAssignedTo(v ?? "")}>
             <SelectTrigger>
               <SelectValue placeholder="Unassigned">
-                {(v: string | null) =>
-                  v
-                    ? (profiles.find((p) => p.id === v)?.full_name ??
-                      profiles.find((p) => p.id === v)?.email ??
-                      "Unassigned")
-                    : "Unassigned"
-                }
+                {(v: string | null) => (v ? profileName(profiles, v) : "Unassigned")}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {profiles.map((p) => (
                 <SelectItem key={p.id} value={p.id}>
-                  {p.full_name ?? p.email}
+                  {displayName(p.full_name, p.email)}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { signOut } from "@/app/(auth)/actions";
+import { displayName as getDisplayName } from "@/lib/format";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +37,7 @@ export function UserMenu({
   email: string | null;
   role: string;
 }) {
-  const displayName = fullName ?? email ?? "Unnamed user";
+  const resolvedName = getDisplayName(fullName, email, "Unnamed user");
   const [isSigningOut, startTransition] = useTransition();
 
   function handleSignOut() {
@@ -62,10 +63,10 @@ export function UserMenu({
         }
       >
         <Avatar className="size-8">
-          <AvatarFallback>{initials(displayName)}</AvatarFallback>
+          <AvatarFallback>{initials(resolvedName)}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col items-start text-left">
-          <span className="text-sm font-medium leading-none">{displayName}</span>
+          <span className="text-sm font-medium leading-none">{resolvedName}</span>
           <span className="text-xs capitalize text-muted-foreground">
             {role}
           </span>

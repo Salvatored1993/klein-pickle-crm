@@ -2,6 +2,24 @@ import type { Database } from "@/lib/database.types";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
+// Nobody's account has a full_name set (they were created directly in
+// Supabase, which doesn't collect one) — fall back to the email's local
+// part, capitalized, rather than showing the raw address or "Unnamed".
+export function nameFromEmail(email: string | null) {
+  if (!email) return null;
+  const localPart = email.split("@")[0];
+  if (!localPart) return null;
+  return localPart.charAt(0).toUpperCase() + localPart.slice(1);
+}
+
+export function displayName(
+  fullName: string | null,
+  email: string | null,
+  fallback = "Unnamed",
+) {
+  return fullName ?? nameFromEmail(email) ?? fallback;
+}
+
 export function profileName(
   profiles: Pick<Profile, "id" | "full_name" | "email">[],
   id: string | null,
@@ -9,7 +27,7 @@ export function profileName(
   if (!id) return null;
   const profile = profiles.find((p) => p.id === id);
   if (!profile) return "Unknown";
-  return profile.full_name ?? profile.email ?? "Unknown";
+  return displayName(profile.full_name, profile.email, "Unknown");
 }
 
 export function formatDate(value: string | null) {

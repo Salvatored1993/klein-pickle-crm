@@ -12,6 +12,7 @@ import {
   type LeadProductLineItem,
 } from "@/app/(app)/leads/actions";
 import type { Database } from "@/lib/database.types";
+import { displayName } from "@/lib/format";
 import {
   SALES_STAGES,
   STAGE_DEFAULT_PROBABILITY,
@@ -168,7 +169,7 @@ export function LeadForm({
   const leadOwner = lead
     ? salespeople.find((p) => p.id === lead.salesperson_id)
     : undefined;
-  const ownerName = leadOwner?.full_name ?? leadOwner?.email ?? "another salesperson";
+  const ownerName = leadOwner ? displayName(leadOwner.full_name, leadOwner.email) : "another salesperson";
   const assignedSalesperson = salespeople.find((p) => p.id === values.salesperson_id);
 
   return (
@@ -194,24 +195,23 @@ export function LeadForm({
               >
                 <SelectTrigger>
                   <SelectValue>
-                    {(v: string | null) =>
-                      salespeople.find((p) => p.id === v)?.full_name ??
-                      salespeople.find((p) => p.id === v)?.email ??
-                      ""
-                    }
+                    {(v: string | null) => {
+                      const match = salespeople.find((p) => p.id === v);
+                      return match ? displayName(match.full_name, match.email) : "";
+                    }}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {salespeople.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.full_name ?? p.email}
+                      {displayName(p.full_name, p.email)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             ) : (
               <Input
-                value={assignedSalesperson?.full_name ?? assignedSalesperson?.email ?? ""}
+                value={assignedSalesperson ? displayName(assignedSalesperson.full_name, assignedSalesperson.email) : ""}
                 disabled
               />
             )}
@@ -617,7 +617,7 @@ export function LeadForm({
             <DialogTitle>Convert to a customer?</DialogTitle>
             <DialogDescription>
               {lead?.company_name} is marked Won. Add it to{" "}
-              {assignedSalesperson?.full_name ?? assignedSalesperson?.email ?? "your"}
+              {assignedSalesperson ? displayName(assignedSalesperson.full_name, assignedSalesperson.email) : "your"}
               &apos;s customer base so it shows up for ongoing check-ins?
             </DialogDescription>
           </DialogHeader>

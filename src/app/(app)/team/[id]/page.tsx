@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { listLeadsBySalesperson } from "@/lib/queries/leads";
 import { listCustomersBySalesperson } from "@/lib/queries/customers";
-import { formatCurrency, formatDate, isOverdue } from "@/lib/format";
+import { formatCurrency, formatDate, isOverdue, displayName } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -27,7 +27,7 @@ export default async function TeamMemberPage(props: PageProps<"/team/[id]">) {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <h1 className="text-2xl font-semibold">
-        {person.full_name ?? person.email}&apos;s activity
+        {displayName(person.full_name, person.email)}&apos;s activity
       </h1>
 
       <Card>

@@ -9,6 +9,7 @@ import {
   type CustomerInput,
 } from "@/app/(app)/customers/actions";
 import type { Database } from "@/lib/database.types";
+import { displayName } from "@/lib/format";
 import { CUSTOMER_TYPES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,7 +93,7 @@ export function CustomerForm({
   const accountOwner = customer
     ? salespeople.find((p) => p.id === customer.salesperson_id)
     : undefined;
-  const ownerName = accountOwner?.full_name ?? accountOwner?.email ?? "another salesperson";
+  const ownerName = accountOwner ? displayName(accountOwner.full_name, accountOwner.email) : "another salesperson";
   const assignedSalesperson = salespeople.find((p) => p.id === values.salesperson_id);
 
   return (
@@ -118,24 +119,23 @@ export function CustomerForm({
               >
                 <SelectTrigger>
                   <SelectValue>
-                    {(v: string | null) =>
-                      salespeople.find((p) => p.id === v)?.full_name ??
-                      salespeople.find((p) => p.id === v)?.email ??
-                      ""
-                    }
+                    {(v: string | null) => {
+                      const match = salespeople.find((p) => p.id === v);
+                      return match ? displayName(match.full_name, match.email) : "";
+                    }}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {salespeople.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.full_name ?? p.email}
+                      {displayName(p.full_name, p.email)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             ) : (
               <Input
-                value={assignedSalesperson?.full_name ?? assignedSalesperson?.email ?? ""}
+                value={assignedSalesperson ? displayName(assignedSalesperson.full_name, assignedSalesperson.email) : ""}
                 disabled
               />
             )}
