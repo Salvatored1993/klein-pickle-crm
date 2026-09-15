@@ -1,5 +1,7 @@
 "use client";
 
+import { useTransition } from "react";
+import { toast } from "sonner";
 import { signOut } from "@/app/(auth)/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,6 +36,19 @@ export function UserMenu({
   role: string;
 }) {
   const displayName = fullName ?? email ?? "Unnamed user";
+  const [isSigningOut, startTransition] = useTransition();
+
+  function handleSignOut() {
+    startTransition(async () => {
+      try {
+        await signOut();
+      } catch (err) {
+        // redirect() inside the action throws internally on success — only
+        // a real failure reaches here.
+        toast.error(err instanceof Error ? err.message : "Could not sign out");
+      }
+    });
+  }
 
   return (
     <DropdownMenu>
@@ -58,9 +73,9 @@ export function UserMenu({
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel>My account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>
+        <DropdownMenuItem onClick={handleSignOut} disabled={isSigningOut}>
           <LogOut className="size-4" />
-          Sign out
+          {isSigningOut ? "Signing out…" : "Sign out"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

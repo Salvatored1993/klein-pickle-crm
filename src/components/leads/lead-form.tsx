@@ -2,10 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   createLead,
   updateLead,
+  convertLeadToCustomer,
   type LeadInput,
   type LeadProductLineItem,
 } from "@/app/(app)/leads/actions";
@@ -37,6 +39,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -78,6 +88,8 @@ export function LeadForm({
     },
   );
   const [lineItems, setLineItems] = useState<LeadProductLineItem[]>(initialLineItems);
+  const [showConvertPrompt, setShowConvertPrompt] = useState(false);
+  const [isConverting, startConverting] = useTransition();
 
   function set<K extends keyof LeadInput>(key: K, value: LeadInput[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -103,12 +115,36 @@ export function LeadForm({
         } else if (lead) {
           await updateLead(lead.id, values, lineItems);
           toast.success("Lead updated");
-          router.refresh();
+          const justWon = lead.sales_stage !== "Won" && values.sales_stage === "Won";
+          if (justWon && !lead.converted_customer_id) {
+            setShowConvertPrompt(true);
+          } else {
+            router.refresh();
+          }
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Something went wrong");
       }
     });
+  }
+
+  function convertNow() {
+    if (!lead) return;
+    startConverting(async () => {
+      try {
+        const customerId = await convertLeadToCustomer(lead.id);
+        toast.success("Converted to customer");
+        setShowConvertPrompt(false);
+        router.push(`/customers/${customerId}`);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Could not convert");
+      }
+    });
+  }
+
+  function dismissConvertPrompt() {
+    setShowConvertPrompt(false);
+    router.refresh();
   }
 
   const canPickSalesperson = currentUser.role === "admin";
@@ -486,6 +522,40 @@ export function LeadForm({
           </Button>
         </div>
       ) : null}
+
+      {lead?.converted_customer_id ? (
+        <p className="text-sm text-muted-foreground">
+          This lead was converted to a customer —{" "}
+          <Link
+            href={`/customers/${lead.converted_customer_id}`}
+            className="underline hover:no-underline"
+          >
+            view it
+          </Link>
+          .
+        </p>
+      ) : null}
+
+      <Dialog open={showConvertPrompt} onOpenChange={(open) => !open && dismissConvertPrompt()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Convert to a customer?</DialogTitle>
+            <DialogDescription>
+              {lead?.company_name} just moved to Won. Add it to{" "}
+              {assignedSalesperson?.full_name ?? assignedSalesperson?.email ?? "your"}
+              &apos;s customer base so it shows up for ongoing check-ins?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={dismissConvertPrompt} disabled={isConverting}>
+              Not now
+            </Button>
+            <Button onClick={convertNow} disabled={isConverting}>
+              {isConverting ? "Converting…" : "Convert to customer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

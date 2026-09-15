@@ -139,6 +139,7 @@ export interface Database {
           next_follow_up_date: string | null;
           notes: string | null;
           lost_reason: string | null;
+          converted_customer_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -169,6 +170,7 @@ export interface Database {
           next_follow_up_date?: string | null;
           notes?: string | null;
           lost_reason?: string | null;
+          converted_customer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
