@@ -110,7 +110,9 @@ export function ProductLineItems({
       <div className="flex flex-col gap-2 rounded-md border p-3">
         <Select value={stagingProductId} onValueChange={(v) => setStagingProductId(v ?? "")}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose a product" />
+            <SelectValue placeholder="Choose a product">
+              {(value: string | null) => (value ? productName(value) : "Choose a product")}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {Array.from(groups.entries()).map(([category, items]) => (
