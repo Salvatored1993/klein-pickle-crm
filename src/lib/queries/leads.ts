@@ -1,10 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 
+// Converted leads are excluded from these lists — once a lead becomes a
+// customer, it belongs on the Customers side; getLead() (the detail page)
+// still shows it directly, e.g. via the "view customer" backlink.
 export async function listLeads() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("leads_with_totals")
     .select("*")
+    .is("converted_customer_id", null)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -17,6 +21,7 @@ export async function listLeadsBySalesperson(salespersonId: string) {
     .from("leads_with_totals")
     .select("*")
     .eq("salesperson_id", salespersonId)
+    .is("converted_customer_id", null)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
