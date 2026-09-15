@@ -123,7 +123,6 @@ export interface Database {
           lead_source: LeadSource | null;
           specific_source: string | null;
           customer_type: CustomerType | null;
-          pack_sizes: PackSize[];
           proposed_volume: number | null;
           volume_unit: string | null;
           estimated_annual_volume: number | null;
@@ -159,7 +158,6 @@ export interface Database {
           lead_source?: LeadSource | null;
           specific_source?: string | null;
           customer_type?: CustomerType | null;
-          pack_sizes?: PackSize[];
           proposed_volume?: number | null;
           volume_unit?: string | null;
           estimated_annual_volume?: number | null;
@@ -188,8 +186,12 @@ export interface Database {
         Relationships: [];
       };
       lead_products: {
-        Row: { lead_id: string; product_id: string };
-        Insert: { lead_id: string; product_id: string };
+        Row: { lead_id: string; product_id: string; pack_sizes: PackSize[] };
+        Insert: {
+          lead_id: string;
+          product_id: string;
+          pack_sizes?: PackSize[];
+        };
         Update: Partial<
           Database["public"]["Tables"]["lead_products"]["Insert"]
         >;

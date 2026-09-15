@@ -3,8 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createLead, updateLead, type LeadInput } from "@/app/(app)/leads/actions";
-import type { Database, PackSize } from "@/lib/database.types";
+import {
+  createLead,
+  updateLead,
+  type LeadInput,
+  type LeadProductLineItem,
+} from "@/app/(app)/leads/actions";
+import type { Database } from "@/lib/database.types";
 import {
   SALES_STAGES,
   STAGE_DEFAULT_PROBABILITY,
@@ -12,15 +17,13 @@ import {
   CUSTOMER_TYPES,
   FREIGHT_TERMS_OPTIONS,
   SAMPLE_TRIAL_STATUSES,
-  PACK_SIZES,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { ProductChecklist } from "@/components/products/product-checklist";
+import { ProductLineItems } from "@/components/leads/product-line-items";
 import {
   Card,
   CardContent,
@@ -46,14 +49,14 @@ function todayISO() {
 export function LeadForm({
   mode,
   lead,
-  initialProductIds = [],
+  initialLineItems = [],
   salespeople,
   products,
   currentUser,
 }: {
   mode: "create" | "edit";
   lead?: Lead;
-  initialProductIds?: string[];
+  initialLineItems?: LeadProductLineItem[];
   salespeople: Profile[];
   products: Product[];
   currentUser: Profile;
@@ -72,10 +75,9 @@ export function LeadForm({
       sample_required: false,
       broker_involved: false,
       sample_trial_status: "Not Required",
-      pack_sizes: [],
     },
   );
-  const [productIds, setProductIds] = useState<string[]>(initialProductIds);
+  const [lineItems, setLineItems] = useState<LeadProductLineItem[]>(initialLineItems);
 
   function set<K extends keyof LeadInput>(key: K, value: LeadInput[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -92,32 +94,14 @@ export function LeadForm({
     }));
   }
 
-  function toggleProduct(id: string) {
-    setProductIds((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    );
-  }
-
-  function togglePackSize(size: PackSize) {
-    setValues((prev) => {
-      const current = prev.pack_sizes ?? [];
-      return {
-        ...prev,
-        pack_sizes: current.includes(size)
-          ? current.filter((s) => s !== size)
-          : [...current, size],
-      };
-    });
-  }
-
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     startTransition(async () => {
       try {
         if (mode === "create") {
-          await createLead(values, productIds);
+          await createLead(values, lineItems);
         } else if (lead) {
-          await updateLead(lead.id, values, productIds);
+          await updateLead(lead.id, values, lineItems);
           toast.success("Lead updated");
           router.refresh();
         }
@@ -271,26 +255,8 @@ export function LeadForm({
             </Select>
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label>Pack size / format</Label>
-            <div className="flex flex-wrap gap-3 rounded-md border p-3">
-              {PACK_SIZES.map((size) => (
-                <label key={size} className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={(values.pack_sizes ?? []).includes(size)}
-                    onCheckedChange={() => togglePackSize(size)}
-                  />
-                  {size}
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label>Products interested in</Label>
-            <ProductChecklist
-              products={products}
-              selectedIds={productIds}
-              onToggle={toggleProduct}
-            />
+            <Label>Products interested in &amp; sizes</Label>
+            <ProductLineItems products={products} value={lineItems} onChange={setLineItems} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="proposed_volume">Proposed volume</Label>

@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getLead } from "@/lib/queries/leads";
+import type { LeadProductLineItem } from "@/app/(app)/leads/actions";
 import { listSalespeople, listActiveProfiles } from "@/lib/queries/profiles";
 import { listActiveProducts } from "@/lib/queries/products";
 import { listTasksFor, listActivityFor } from "@/lib/queries/collab";
@@ -21,9 +22,9 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
   if (!currentUser) redirect("/login");
 
   let lead;
-  let productIds: string[];
+  let lineItems: LeadProductLineItem[];
   try {
-    ({ lead, productIds } = await getLead(id));
+    ({ lead, lineItems } = await getLead(id));
   } catch {
     notFound();
   }
@@ -51,7 +52,7 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
           <LeadForm
             mode="edit"
             lead={lead}
-            initialProductIds={productIds}
+            initialLineItems={lineItems}
             salespeople={salespeople}
             products={products}
             currentUser={currentUser}
