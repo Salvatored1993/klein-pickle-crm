@@ -123,11 +123,6 @@ export interface Database {
           lead_source: LeadSource | null;
           specific_source: string | null;
           customer_type: CustomerType | null;
-          proposed_volume: number | null;
-          volume_unit: string | null;
-          estimated_annual_volume: number | null;
-          estimated_annual_sales: number | null;
-          target_price: number | null;
           freight_terms: FreightTerms | null;
           ship_to_locations: string | null;
           distributor: string | null;
@@ -158,11 +153,6 @@ export interface Database {
           lead_source?: LeadSource | null;
           specific_source?: string | null;
           customer_type?: CustomerType | null;
-          proposed_volume?: number | null;
-          volume_unit?: string | null;
-          estimated_annual_volume?: number | null;
-          estimated_annual_sales?: number | null;
-          target_price?: number | null;
           freight_terms?: FreightTerms | null;
           ship_to_locations?: string | null;
           distributor?: string | null;
@@ -186,11 +176,25 @@ export interface Database {
         Relationships: [];
       };
       lead_products: {
-        Row: { lead_id: string; product_id: string; pack_sizes: PackSize[] };
+        Row: {
+          lead_id: string;
+          product_id: string;
+          pack_sizes: PackSize[];
+          proposed_volume: number | null;
+          volume_unit: string | null;
+          estimated_annual_volume: number | null;
+          estimated_annual_sales: number | null;
+          target_price: number | null;
+        };
         Insert: {
           lead_id: string;
           product_id: string;
           pack_sizes?: PackSize[];
+          proposed_volume?: number | null;
+          volume_unit?: string | null;
+          estimated_annual_volume?: number | null;
+          estimated_annual_sales?: number | null;
+          target_price?: number | null;
         };
         Update: Partial<
           Database["public"]["Tables"]["lead_products"]["Insert"]
@@ -305,6 +309,12 @@ export interface Database {
       };
     };
     Views: {
+      leads_with_totals: {
+        Row: Database["public"]["Tables"]["leads"]["Row"] & {
+          estimated_annual_sales: number;
+        };
+        Relationships: [];
+      };
       dashboard_leads_by_salesperson: {
         Row: {
           salesperson_id: string;
@@ -324,19 +334,19 @@ export interface Database {
         Relationships: [];
       };
       dashboard_overdue_followups: {
-        Row: Database["public"]["Tables"]["leads"]["Row"] & {
+        Row: Database["public"]["Views"]["leads_with_totals"]["Row"] & {
           salesperson_name: string | null;
         };
         Relationships: [];
       };
       dashboard_samples_outstanding: {
-        Row: Database["public"]["Tables"]["leads"]["Row"] & {
+        Row: Database["public"]["Views"]["leads_with_totals"]["Row"] & {
           salesperson_name: string | null;
         };
         Relationships: [];
       };
       dashboard_quotes_outstanding: {
-        Row: Database["public"]["Tables"]["leads"]["Row"] & {
+        Row: Database["public"]["Views"]["leads_with_totals"]["Row"] & {
           salesperson_name: string | null;
         };
         Relationships: [];

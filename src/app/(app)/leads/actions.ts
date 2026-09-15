@@ -6,7 +6,15 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database, PackSize } from "@/lib/database.types";
 
 export type LeadInput = Database["public"]["Tables"]["leads"]["Insert"];
-export type LeadProductLineItem = { productId: string; packSizes: PackSize[] };
+export type LeadProductLineItem = {
+  productId: string;
+  packSizes: PackSize[];
+  proposedVolume: number | null;
+  volumeUnit: string | null;
+  estimatedAnnualVolume: number | null;
+  estimatedAnnualSales: number | null;
+  targetPrice: number | null;
+};
 
 async function syncLeadProducts(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -20,6 +28,11 @@ async function syncLeadProducts(
         lead_id: leadId,
         product_id: item.productId,
         pack_sizes: item.packSizes,
+        proposed_volume: item.proposedVolume,
+        volume_unit: item.volumeUnit,
+        estimated_annual_volume: item.estimatedAnnualVolume,
+        estimated_annual_sales: item.estimatedAnnualSales,
+        target_price: item.targetPrice,
       })),
     );
     if (error) throw error;

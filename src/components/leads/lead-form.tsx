@@ -258,66 +258,6 @@ export function LeadForm({
             <Label>Products interested in &amp; sizes</Label>
             <ProductLineItems products={products} value={lineItems} onChange={setLineItems} />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="proposed_volume">Proposed volume</Label>
-            <Input
-              id="proposed_volume"
-              type="number"
-              value={values.proposed_volume ?? ""}
-              onChange={(e) =>
-                set("proposed_volume", e.target.value ? Number(e.target.value) : null)
-              }
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="volume_unit">Volume unit</Label>
-            <Input
-              id="volume_unit"
-              placeholder="e.g. cases, pallets, lbs"
-              value={values.volume_unit ?? ""}
-              onChange={(e) => set("volume_unit", e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="estimated_annual_volume">Estimated annual volume</Label>
-            <Input
-              id="estimated_annual_volume"
-              type="number"
-              value={values.estimated_annual_volume ?? ""}
-              onChange={(e) =>
-                set(
-                  "estimated_annual_volume",
-                  e.target.value ? Number(e.target.value) : null,
-                )
-              }
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="estimated_annual_sales">Estimated annual sales ($)</Label>
-            <Input
-              id="estimated_annual_sales"
-              type="number"
-              value={values.estimated_annual_sales ?? ""}
-              onChange={(e) =>
-                set(
-                  "estimated_annual_sales",
-                  e.target.value ? Number(e.target.value) : null,
-                )
-              }
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="target_price">Target price ($)</Label>
-            <Input
-              id="target_price"
-              type="number"
-              step="0.01"
-              value={values.target_price ?? ""}
-              onChange={(e) =>
-                set("target_price", e.target.value ? Number(e.target.value) : null)
-              }
-            />
-          </div>
         </CardContent>
       </Card>
 
