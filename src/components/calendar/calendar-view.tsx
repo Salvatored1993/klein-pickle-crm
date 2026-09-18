@@ -6,9 +6,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { CalendarItem } from "@/lib/queries/calendar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const ALL_SALESPEOPLE = "__all__";
 
 function dateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -16,20 +24,38 @@ function dateKey(d: Date) {
   ).padStart(2, "0")}`;
 }
 
-export function CalendarView({ items }: { items: CalendarItem[] }) {
+export function CalendarView({
+  items,
+  salespeople,
+}: {
+  items: CalendarItem[];
+  // Only passed for admins — lets them narrow the combined team calendar
+  // down to one person's schedule. Omitted entirely for a salesperson's
+  // own view, since it would only ever have one option (themselves).
+  salespeople?: { id: string; name: string }[];
+}) {
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState<string | null>(() => dateKey(today));
+  const [salespersonFilter, setSalespersonFilter] = useState(ALL_SALESPEOPLE);
+
+  const visibleItems = useMemo(
+    () =>
+      salespersonFilter === ALL_SALESPEOPLE
+        ? items
+        : items.filter((i) => i.salespersonId === salespersonFilter),
+    [items, salespersonFilter],
+  );
 
   const byDay = useMemo(() => {
     const map = new Map<string, CalendarItem[]>();
-    for (const item of items) {
+    for (const item of visibleItems) {
       const key = dateKey(new Date(`${item.date}T00:00:00`));
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
     }
     return map;
-  }, [items]);
+  }, [visibleItems]);
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -46,6 +72,28 @@ export function CalendarView({ items }: { items: CalendarItem[] }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {salespeople && salespeople.length > 0 ? (
+        <Select value={salespersonFilter} onValueChange={(v) => v && setSalespersonFilter(v)}>
+          <SelectTrigger>
+            <SelectValue>
+              {(v: string) =>
+                v === ALL_SALESPEOPLE
+                  ? "All salespeople"
+                  : (salespeople.find((s) => s.id === v)?.name ?? "All salespeople")
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SALESPEOPLE}>All salespeople</SelectItem>
+            {salespeople.map((s) => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
+
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
@@ -133,7 +181,12 @@ export function CalendarView({ items }: { items: CalendarItem[] }) {
                   href={item.type === "lead" ? `/leads/${item.id}` : `/customers/${item.id}`}
                   className="flex items-center justify-between gap-2 rounded-md border p-2 hover:bg-muted/50"
                 >
-                  <span className="text-sm font-medium">{item.companyName}</span>
+                  <span className="flex flex-col">
+                    <span className="text-sm font-medium">{item.companyName}</span>
+                    {salespeople ? (
+                      <span className="text-xs text-muted-foreground">{item.salespersonName}</span>
+                    ) : null}
+                  </span>
                   <Badge variant="secondary">
                     {item.type === "lead" ? "Lead follow-up" : "Customer check-in"}
                   </Badge>
