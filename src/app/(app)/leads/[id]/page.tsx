@@ -1,4 +1,6 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import { Printer } from "lucide-react";
 import { getLead } from "@/lib/queries/leads";
 import type { LeadProductLineItem } from "@/app/(app)/leads/actions";
 import { listSalespeople, listActiveProfiles } from "@/lib/queries/profiles";
@@ -6,6 +8,7 @@ import { listActiveProducts } from "@/lib/queries/products";
 import { listTasksFor, listActivityFor } from "@/lib/queries/collab";
 import { getCurrentUser } from "@/lib/supabase/current-user";
 import { LeadForm } from "@/components/leads/lead-form";
+import { Button } from "@/components/ui/button";
 import { TaskList } from "@/components/collab/task-list";
 import { ActivityFeed } from "@/components/collab/activity-feed";
 import {
@@ -38,7 +41,13 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
 
   return (
     <div className="p-4 md:p-6">
-      <h1 className="mb-4 text-2xl font-semibold">{lead.company_name}</h1>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-semibold">{lead.company_name}</h1>
+        <Button variant="outline" size="sm" render={<Link href={`/leads/${id}/print`} target="_blank" rel="noopener noreferrer" />}>
+          <Printer className="size-4" />
+          Print
+        </Button>
+      </div>
 
       <Tabs defaultValue="details" className="max-w-3xl">
         <TabsList>
