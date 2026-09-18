@@ -8,7 +8,7 @@ export type SalesStage =
   | "New Lead"
   | "Contacted"
   | "Qualified"
-  | "Sample/Trial"
+  | "Sample"
   | "Quote Submitted"
   | "Customer Testing"
   | "Negotiation"
