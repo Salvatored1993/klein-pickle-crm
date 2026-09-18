@@ -6,8 +6,7 @@ export async function listActiveProducts() {
     .from("products")
     .select("*")
     .eq("is_active", true)
-    .order("category", { ascending: true })
-    .order("name", { ascending: true });
+    .order("item_number", { ascending: true });
 
   if (error) throw error;
   return data;

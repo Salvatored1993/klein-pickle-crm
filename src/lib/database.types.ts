@@ -99,12 +99,14 @@ export interface Database {
       products: {
         Row: {
           id: string;
+          item_number: string;
           name: string;
           category: string;
           is_active: boolean;
         };
         Insert: {
           id?: string;
+          item_number: string;
           name: string;
           category?: string;
           is_active?: boolean;

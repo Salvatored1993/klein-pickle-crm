@@ -30,6 +30,10 @@ export function profileName(
   return displayName(profile.full_name, profile.email, "Unknown");
 }
 
+export function productLabel(product: { item_number: string; name: string }) {
+  return `${product.item_number} - ${product.name}`;
+}
+
 export function formatDate(value: string | null) {
   if (!value) return "—";
   return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {

@@ -5,6 +5,7 @@ import { X, Plus } from "lucide-react";
 import type { Database, PackSize } from "@/lib/database.types";
 import type { LeadProductLineItem } from "@/app/(app)/leads/actions";
 import { PACK_SIZES } from "@/lib/constants";
+import { productLabel } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -13,9 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -58,12 +57,6 @@ export function ProductLineItems({
   const [stagingProductId, setStagingProductId] = useState<string>("");
   const [stagingCustomName, setStagingCustomName] = useState("");
   const [staging, setStaging] = useState<Staging>(EMPTY_STAGING);
-
-  const groups = new Map<string, Product[]>();
-  for (const product of products) {
-    if (!groups.has(product.category)) groups.set(product.category, []);
-    groups.get(product.category)!.push(product);
-  }
 
   const isCustom = stagingProductId === CUSTOM_PRODUCT;
 
@@ -139,7 +132,8 @@ export function ProductLineItems({
   }
 
   function productName(id: string) {
-    return products.find((p) => p.id === id)?.name ?? "Unknown product";
+    const product = products.find((p) => p.id === id);
+    return product ? productLabel(product) : "Unknown product";
   }
 
   function lineItemLabel(item: LeadProductLineItem) {
@@ -225,19 +219,11 @@ export function ProductLineItems({
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Custom</SelectLabel>
-              <SelectItem value={CUSTOM_PRODUCT}>Other / custom product…</SelectItem>
-            </SelectGroup>
-            {Array.from(groups.entries()).map(([category, items]) => (
-              <SelectGroup key={category}>
-                <SelectLabel>{category}</SelectLabel>
-                {items.map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
+            <SelectItem value={CUSTOM_PRODUCT}>Other / custom product…</SelectItem>
+            {products.map((product) => (
+              <SelectItem key={product.id} value={product.id}>
+                {productLabel(product)}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
