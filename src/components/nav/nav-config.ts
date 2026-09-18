@@ -5,6 +5,7 @@ import {
   ListChecks,
   ListTodo,
   AlarmClockCheck,
+  CalendarDays,
   Settings,
   Building2,
   Users,
@@ -20,6 +21,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/leads", label: "Leads", icon: ListChecks },
   { href: "/customers", label: "Customers", icon: Building2 },
   { href: "/team", label: "Team", icon: Users },
@@ -45,6 +47,7 @@ export const NAV_ITEMS: NavItem[] = [
 
 export const MOBILE_NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/leads", label: "Leads", icon: ListChecks },
   { href: "/customers", label: "Customers", icon: Building2 },
   { href: "/team", label: "Team", icon: Users },

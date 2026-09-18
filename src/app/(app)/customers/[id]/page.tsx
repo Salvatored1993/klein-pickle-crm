@@ -7,7 +7,6 @@ import { getCurrentUser } from "@/lib/supabase/current-user";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { TaskList } from "@/components/collab/task-list";
 import { ActivityFeed } from "@/components/collab/activity-feed";
-import { ActivityCalendar } from "@/components/collab/activity-calendar";
 import { CheckinForm } from "@/components/customers/checkin-form";
 import { Badge } from "@/components/ui/badge";
 import { isOverdue, formatDate } from "@/lib/format";
@@ -64,7 +63,6 @@ export default async function CustomerDetailPage(
         <Tabs defaultValue="activity" className="mt-4">
           <TabsList>
             <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
@@ -74,9 +72,6 @@ export default async function CustomerDetailPage(
               activity={activity}
               profiles={profiles}
             />
-          </TabsContent>
-          <TabsContent value="calendar">
-            <ActivityCalendar activity={activity} profiles={profiles} />
           </TabsContent>
           <TabsContent value="tasks">
             <TaskList target={{ customerId: id }} tasks={tasks} profiles={profiles} />

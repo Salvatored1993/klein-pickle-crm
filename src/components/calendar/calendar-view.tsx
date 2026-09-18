@@ -1,15 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Database } from "@/lib/database.types";
-import { profileName, formatDateTime } from "@/lib/format";
-import { describeActivity } from "@/lib/activity";
+import type { CalendarItem } from "@/lib/queries/calendar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-type Activity = Database["public"]["Tables"]["activity"]["Row"];
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -19,26 +16,20 @@ function dateKey(d: Date) {
   ).padStart(2, "0")}`;
 }
 
-export function ActivityCalendar({
-  activity,
-  profiles,
-}: {
-  activity: Activity[];
-  profiles: Profile[];
-}) {
+export function CalendarView({ items }: { items: CalendarItem[] }) {
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState<string | null>(() => dateKey(today));
 
   const byDay = useMemo(() => {
-    const map = new Map<string, Activity[]>();
-    for (const item of activity) {
-      const key = dateKey(new Date(item.created_at));
+    const map = new Map<string, CalendarItem[]>();
+    for (const item of items) {
+      const key = dateKey(new Date(`${item.date}T00:00:00`));
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
     }
     return map;
-  }, [activity]);
+  }, [items]);
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -49,8 +40,9 @@ export function ActivityCalendar({
     ...Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1)),
   ];
 
-  const selectedActivity = selected ? (byDay.get(selected) ?? []) : [];
   const todayKey = dateKey(today);
+  const selectedItems = selected ? (byDay.get(selected) ?? []) : [];
+  const selectedIsPast = selected !== null && selected < todayKey;
 
   return (
     <div className="flex flex-col gap-4">
@@ -85,9 +77,10 @@ export function ActivityCalendar({
         {cells.map((date, i) => {
           if (!date) return <div key={`blank-${i}`} />;
           const key = dateKey(date);
-          const count = byDay.get(key)?.length ?? 0;
+          const dayItems = byDay.get(key) ?? [];
           const isSelected = key === selected;
           const isToday = key === todayKey;
+          const isPast = key < todayKey;
           return (
             <button
               key={key}
@@ -95,18 +88,20 @@ export function ActivityCalendar({
               onClick={() => setSelected(key)}
               className={cn(
                 "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-md text-sm",
-                isSelected
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted",
+                isSelected ? "bg-primary text-primary-foreground" : "hover:bg-muted",
                 isToday && !isSelected ? "ring-1 ring-primary" : undefined,
               )}
             >
               {date.getDate()}
-              {count > 0 ? (
+              {dayItems.length > 0 ? (
                 <span
                   className={cn(
                     "size-1 rounded-full",
-                    isSelected ? "bg-primary-foreground" : "bg-primary",
+                    isSelected
+                      ? "bg-primary-foreground"
+                      : isPast
+                        ? "bg-destructive"
+                        : "bg-primary",
                   )}
                 />
               ) : null}
@@ -124,28 +119,27 @@ export function ActivityCalendar({
                 day: "numeric",
               })
             : "Select a day"}
+          {selectedIsPast && selectedItems.length > 0 ? (
+            <span className="ml-2 text-xs font-normal text-destructive">overdue</span>
+          ) : null}
         </p>
-        {selectedActivity.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No updates logged this day.</p>
+        {selectedItems.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nothing scheduled this day.</p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {selectedActivity.map((item) => {
-              const description = describeActivity(item);
-              const author = profileName(profiles, item.author_id);
-              return (
-                <li key={item.id} className="rounded-md border p-2">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-sm font-medium">{author ?? "System"}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDateTime(item.created_at)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {description ?? item.body}
-                  </p>
-                </li>
-              );
-            })}
+            {selectedItems.map((item) => (
+              <li key={`${item.type}-${item.id}`}>
+                <Link
+                  href={item.type === "lead" ? `/leads/${item.id}` : `/customers/${item.id}`}
+                  className="flex items-center justify-between gap-2 rounded-md border p-2 hover:bg-muted/50"
+                >
+                  <span className="text-sm font-medium">{item.companyName}</span>
+                  <Badge variant="secondary">
+                    {item.type === "lead" ? "Lead follow-up" : "Customer check-in"}
+                  </Badge>
+                </Link>
+              </li>
+            ))}
           </ul>
         )}
       </div>

@@ -8,7 +8,6 @@ import { getCurrentUser } from "@/lib/supabase/current-user";
 import { LeadForm } from "@/components/leads/lead-form";
 import { TaskList } from "@/components/collab/task-list";
 import { ActivityFeed } from "@/components/collab/activity-feed";
-import { ActivityCalendar } from "@/components/collab/activity-calendar";
 import {
   Tabs,
   TabsContent,
@@ -46,7 +45,6 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar</TabsTrigger>
         </TabsList>
         <TabsContent value="details">
           <LeadForm
@@ -63,9 +61,6 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
         </TabsContent>
         <TabsContent value="activity">
           <ActivityFeed target={{ leadId: id }} activity={activity} profiles={profiles} />
-        </TabsContent>
-        <TabsContent value="calendar">
-          <ActivityCalendar activity={activity} profiles={profiles} />
         </TabsContent>
       </Tabs>
     </div>
