@@ -12,16 +12,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
 const CUSTOM_PRODUCT = "__custom__";
+
+type ProductOption = { id: string; label: string };
 
 type Staging = Omit<LeadProductLineItem, "productId" | "customProductName">;
 
@@ -59,6 +62,12 @@ export function ProductLineItems({
   const [staging, setStaging] = useState<Staging>(EMPTY_STAGING);
 
   const isCustom = stagingProductId === CUSTOM_PRODUCT;
+
+  const productOptions: ProductOption[] = [
+    { id: CUSTOM_PRODUCT, label: "Other / custom product…" },
+    ...products.map((p) => ({ id: p.id, label: productLabel(p) })),
+  ];
+  const selectedOption = productOptions.find((o) => o.id === stagingProductId) ?? null;
 
   function setStagingField<K extends keyof Staging>(key: K, val: Staging[K]) {
     setStaging((prev) => ({ ...prev, [key]: val }));
@@ -208,25 +217,34 @@ export function ProductLineItems({
       )}
 
       <div className="flex flex-col gap-3 rounded-md border p-3">
-        <Select value={stagingProductId} onValueChange={(v) => setStagingProductId(v ?? "")}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose a product">
-              {(v: string | null) => {
-                if (!v) return "Choose a product";
-                if (v === CUSTOM_PRODUCT) return "Other / custom product…";
-                return productName(v);
-              }}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={CUSTOM_PRODUCT}>Other / custom product…</SelectItem>
-            {products.map((product) => (
-              <SelectItem key={product.id} value={product.id}>
-                {productLabel(product)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Combobox
+          items={productOptions}
+          value={selectedOption}
+          onValueChange={(
+            option: ProductOption | null,
+            eventDetails?: { reason?: string },
+          ) => {
+            // Escape closes the popup in every other picker in this app
+            // without clearing the field — match that instead of Base UI's
+            // default of also clearing the current selection.
+            if (option === null && eventDetails?.reason === "escape-key") return;
+            setStagingProductId(option?.id ?? "");
+          }}
+          itemToStringLabel={(option: ProductOption) => option.label}
+          isItemEqualToValue={(a: ProductOption, b: ProductOption) => a.id === b.id}
+        >
+          <ComboboxInput placeholder="Search for a product…" className="w-full" />
+          <ComboboxContent>
+            <ComboboxEmpty>No products found.</ComboboxEmpty>
+            <ComboboxList>
+              {(option: ProductOption) => (
+                <ComboboxItem key={option.id} value={option}>
+                  {option.label}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
 
         {isCustom ? (
           <div className="flex flex-col gap-1.5">
