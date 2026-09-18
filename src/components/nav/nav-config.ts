@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   ListChecks,
   ListTodo,
-  KanbanSquare,
   AlarmClockCheck,
   Settings,
   Building2,
@@ -24,7 +23,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/leads", label: "Leads", icon: ListChecks },
   { href: "/customers", label: "Customers", icon: Building2 },
   { href: "/team", label: "Team", icon: Users },
-  { href: "/pipeline", label: "Pipeline", icon: KanbanSquare },
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   {
     href: "/reports/overdue",
