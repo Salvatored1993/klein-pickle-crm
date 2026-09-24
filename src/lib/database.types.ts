@@ -243,6 +243,7 @@ export interface Database {
           last_contact_date: string;
           next_action: string | null;
           next_checkin_date: string;
+          sales_customer_code: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -262,6 +263,7 @@ export interface Database {
           last_contact_date?: string;
           next_action?: string | null;
           next_checkin_date?: string;
+          sales_customer_code?: string | null;
           created_at?: string;
           updated_at?: string;
         };

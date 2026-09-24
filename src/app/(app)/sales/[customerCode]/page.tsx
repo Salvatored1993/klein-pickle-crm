@@ -1,17 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSalesCustomer } from "@/lib/queries/sales";
+import { createClient } from "@/lib/supabase/server";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { CustomerInvoiceHistory } from "@/components/sales/customer-invoice-history";
+import { CustomerOrderInfo } from "@/components/sales/customer-order-info";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 export default async function SalesCustomerPage(props: {
   params: Promise<{ customerCode: string }>;
@@ -25,6 +18,13 @@ export default async function SalesCustomerPage(props: {
     notFound();
   }
 
+  const supabase = await createClient();
+  const { data: linkedCustomer } = await supabase
+    .from("customers")
+    .select("id")
+    .eq("sales_customer_code", customerCode)
+    .maybeSingle();
+
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <div>
@@ -36,6 +36,14 @@ export default async function SalesCustomerPage(props: {
           {customer.invoiceCount} invoices &middot; {formatDate(customer.firstInvoiceDate)}{" "}
           &ndash; {formatDate(customer.lastInvoiceDate)}
         </p>
+        {linkedCustomer ? (
+          <Link
+            href={`/customers/${linkedCustomer.id}`}
+            className="text-sm text-primary hover:underline"
+          >
+            View this account in Customers &rarr;
+          </Link>
+        ) : null}
       </div>
 
       <Card className="w-fit">
@@ -49,51 +57,7 @@ export default async function SalesCustomerPage(props: {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">What they buy</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Invoices</TableHead>
-                  <TableHead>Total qty</TableHead>
-                  <TableHead className="text-right">Total sales</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((p) => (
-                  <TableRow key={p.product_code}>
-                    <TableCell>{p.description}</TableCell>
-                    <TableCell className="text-muted-foreground">{p.product_code}</TableCell>
-                    <TableCell>{p.invoice_count}</TableCell>
-                    <TableCell>{p.total_qty}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(p.total_extension)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Invoice history</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Click an invoice to see its full line-item detail.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <CustomerInvoiceHistory invoices={invoices} />
-        </CardContent>
-      </Card>
+      <CustomerOrderInfo products={products} invoices={invoices} />
     </div>
   );
 }
