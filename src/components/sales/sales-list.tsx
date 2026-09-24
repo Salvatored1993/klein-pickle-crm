@@ -6,6 +6,7 @@ import type { SalesInvoiceRow, SalesLineItemRow } from "@/lib/queries/sales";
 import { formatCurrency, formatDate, salesSalespersonName } from "@/lib/format";
 import { SalesBarChart } from "@/components/sales/sales-bar-chart";
 import { SalespersonFilter, ALL_SALESPEOPLE } from "@/components/filters/salesperson-filter";
+import { CustomerFilter, ALL_CUSTOMERS } from "@/components/filters/customer-filter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,7 @@ export function SalesList({
   lineItems: SalesLineItemRow[];
 }) {
   const [salespersonFilter, setSalespersonFilter] = useState(ALL_SALESPEOPLE);
+  const [customerFilter, setCustomerFilter] = useState(ALL_CUSTOMERS);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [metric, setMetric] = useState<Metric>("dollars");
@@ -58,11 +60,22 @@ export function SalesList({
     );
   }, [invoices]);
 
+  const customers = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const inv of invoices) {
+      if (!seen.has(inv.customerCode)) seen.set(inv.customerCode, inv.customerName);
+    }
+    return Array.from(seen, ([code, name]) => ({ code, name })).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [invoices]);
+
   const rows: Row[] = useMemo(() => {
-    function inRange(salespersonCode: string | null, date: string) {
+    function inRange(salespersonCode: string | null, customerCode: string, date: string) {
       if (salespersonFilter !== ALL_SALESPEOPLE && salespersonCode !== salespersonFilter) {
         return false;
       }
+      if (customerFilter !== ALL_CUSTOMERS && customerCode !== customerFilter) return false;
       if (fromDate && date < fromDate) return false;
       if (toDate && date > toDate) return false;
       return true;
@@ -72,7 +85,7 @@ export function SalesList({
 
     if (metric === "dollars") {
       for (const inv of invoices) {
-        if (!inRange(inv.salespersonCode, inv.invoiceDate)) continue;
+        if (!inRange(inv.salespersonCode, inv.customerCode, inv.invoiceDate)) continue;
         const existing = byCustomer.get(inv.customerCode);
         if (existing) {
           existing.invoiceCount += 1;
@@ -94,7 +107,7 @@ export function SalesList({
       const invoiceIdsByCustomer = new Map<string, Set<string>>();
       for (const item of lineItems) {
         if (item.uom !== CASE_UOM) continue;
-        if (!inRange(item.salespersonCode, item.invoiceDate)) continue;
+        if (!inRange(item.salespersonCode, item.customerCode, item.invoiceDate)) continue;
         const existing = byCustomer.get(item.customerCode);
         if (existing) {
           existing.value += item.qty;
@@ -120,7 +133,7 @@ export function SalesList({
     }
 
     return Array.from(byCustomer.values()).sort((a, b) => b.value - a.value);
-  }, [invoices, lineItems, metric, salespersonFilter, fromDate, toDate]);
+  }, [invoices, lineItems, metric, salespersonFilter, customerFilter, fromDate, toDate]);
 
   const withValue = rows.filter((r) => r.value > 0);
   const grandTotal = withValue.reduce((sum, r) => sum + r.value, 0);
@@ -131,7 +144,7 @@ export function SalesList({
     total: r.value,
   }));
 
-  const isFiltered = fromDate || toDate;
+  const isFiltered = fromDate || toDate || customerFilter !== ALL_CUSTOMERS;
 
   return (
     <div className="flex flex-col gap-6">
@@ -152,6 +165,10 @@ export function SalesList({
             onChange={setSalespersonFilter}
             salespeople={salespeople}
           />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label className="text-xs text-muted-foreground">Customer</Label>
+          <CustomerFilter value={customerFilter} onChange={setCustomerFilter} customers={customers} />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="sales-from" className="text-xs text-muted-foreground">
@@ -185,9 +202,10 @@ export function SalesList({
             onClick={() => {
               setFromDate("");
               setToDate("");
+              setCustomerFilter(ALL_CUSTOMERS);
             }}
           >
-            Clear dates
+            Clear filters
           </Button>
         ) : null}
       </div>
