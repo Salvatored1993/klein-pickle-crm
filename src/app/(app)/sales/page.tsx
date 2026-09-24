@@ -1,8 +1,11 @@
-import { listSalesInvoicesRaw } from "@/lib/queries/sales";
+import { listSalesInvoicesRaw, listSalesLineItemsRaw } from "@/lib/queries/sales";
 import { SalesList } from "@/components/sales/sales-list";
 
 export default async function SalesPage() {
-  const invoices = await listSalesInvoicesRaw();
+  const [invoices, lineItems] = await Promise.all([
+    listSalesInvoicesRaw(),
+    listSalesLineItemsRaw(),
+  ]);
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -14,7 +17,7 @@ export default async function SalesPage() {
         </p>
       </div>
 
-      <SalesList invoices={invoices} />
+      <SalesList invoices={invoices} lineItems={lineItems} />
     </div>
   );
 }
