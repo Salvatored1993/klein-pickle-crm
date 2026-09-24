@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSalesCustomer } from "@/lib/queries/sales";
-import { formatCurrency, formatDate, salesSalespersonName } from "@/lib/format";
-import { Badge } from "@/components/ui/badge";
+import { formatCurrency, formatDate } from "@/lib/format";
+import { CustomerInvoiceHistory } from "@/components/sales/customer-invoice-history";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -31,10 +31,10 @@ export default async function SalesCustomerPage(props: {
         <Link href="/sales" className="text-sm text-muted-foreground hover:underline">
           &larr; All customers
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">{customer.customer_name}</h1>
+        <h1 className="mt-1 text-2xl font-semibold">{customer.customerName}</h1>
         <p className="text-sm text-muted-foreground">
-          {customer.invoice_count} invoices &middot; {formatDate(customer.first_invoice_date)}{" "}
-          &ndash; {formatDate(customer.last_invoice_date)}
+          {customer.invoiceCount} invoices &middot; {formatDate(customer.firstInvoiceDate)}{" "}
+          &ndash; {formatDate(customer.lastInvoiceDate)}
         </p>
       </div>
 
@@ -45,7 +45,7 @@ export default async function SalesCustomerPage(props: {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-semibold">{formatCurrency(customer.total_sales)}</p>
+          <p className="text-3xl font-semibold">{formatCurrency(customer.totalSales)}</p>
         </CardContent>
       </Card>
 
@@ -86,38 +86,12 @@ export default async function SalesCustomerPage(props: {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Invoice history</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Click an invoice to see its full line-item detail.
+          </p>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Salesperson</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoices.map((inv) => (
-                  <TableRow key={inv.id}>
-                    <TableCell>{inv.invoice_number}</TableCell>
-                    <TableCell>{formatDate(inv.invoice_date)}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {salesSalespersonName(inv.salesperson_code, inv.salesperson_name)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{inv.sale_type}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(inv.total)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <CustomerInvoiceHistory invoices={invoices} />
         </CardContent>
       </Card>
     </div>

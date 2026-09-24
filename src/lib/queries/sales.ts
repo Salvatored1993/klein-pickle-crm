@@ -1,35 +1,84 @@
 import { createClient } from "@/lib/supabase/server";
 
-export async function listSalesCustomerTotals() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("sales_customer_totals")
-    .select("*")
-    .order("total_sales", { ascending: false });
+export type SalesInvoiceRow = {
+  id: string;
+  customerCode: string;
+  customerName: string;
+  invoiceDate: string;
+  salespersonCode: string | null;
+  salespersonName: string | null;
+  total: number;
+};
 
-  if (error) throw error;
-  return data;
+// Flat invoice list with customer names joined in — small enough (a few
+// thousand rows) to fetch whole and filter/aggregate by salesperson and
+// date range entirely client-side, so both filters combine freely without
+// round-tripping to the DB per change.
+export async function listSalesInvoicesRaw(): Promise<SalesInvoiceRow[]> {
+  const supabase = await createClient();
+
+  const { data: customers, error: customersError } = await supabase
+    .from("sales_customers")
+    .select("customer_code, customer_name");
+  if (customersError) throw customersError;
+  const nameByCode = new Map(customers.map((c) => [c.customer_code, c.customer_name]));
+
+  // Supabase/PostgREST caps a single request at 1000 rows by default —
+  // this table already exceeds that, so page through it explicitly.
+  const PAGE_SIZE = 1000;
+  const invoices: {
+    id: string;
+    customer_code: string;
+    invoice_date: string;
+    salesperson_code: string | null;
+    salesperson_name: string | null;
+    total: number;
+  }[] = [];
+  for (let page = 0; ; page++) {
+    const { data, error } = await supabase
+      .from("sales_invoices")
+      .select("id, customer_code, invoice_date, salesperson_code, salesperson_name, total")
+      .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+    if (error) throw error;
+    invoices.push(...data);
+    if (data.length < PAGE_SIZE) break;
+  }
+
+  return invoices.map((i) => ({
+    id: i.id,
+    customerCode: i.customer_code,
+    customerName: nameByCode.get(i.customer_code) ?? i.customer_code,
+    invoiceDate: i.invoice_date,
+    salespersonCode: i.salesperson_code,
+    salespersonName: i.salesperson_name,
+    total: i.total,
+  }));
 }
 
-// One row per (customer, salesperson) pair — a customer whose invoices span
-// more than one salesperson code over the year gets more than one row.
-export async function listSalesCustomerSalespersonTotals() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("sales_customer_salesperson_totals")
-    .select("*")
-    .order("total_sales", { ascending: false });
-
-  if (error) throw error;
-  return data;
-}
+export type SalesInvoiceWithItems = {
+  id: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  saleType: string;
+  salespersonCode: string | null;
+  salespersonName: string | null;
+  total: number;
+  items: {
+    productCode: string;
+    description: string;
+    qty: number;
+    uom: string | null;
+    price: number | null;
+    extension: number;
+  }[];
+};
 
 export async function getSalesCustomer(customerCode: string) {
   const supabase = await createClient();
 
   const { data: customer, error: customerError } = await supabase
-    .from("sales_customer_totals")
-    .select("*")
+    .from("sales_customers")
+    .select("customer_code, customer_name")
     .eq("customer_code", customerCode)
     .single();
   if (customerError) throw customerError;
@@ -43,12 +92,59 @@ export async function getSalesCustomer(customerCode: string) {
 
   const { data: invoices, error: invoicesError } = await supabase
     .from("sales_invoices")
-    .select(
-      "id, invoice_number, invoice_date, sale_type, salesperson_code, salesperson_name, total",
-    )
+    .select("id, invoice_number, invoice_date, sale_type, salesperson_code, salesperson_name, total")
     .eq("customer_code", customerCode)
     .order("invoice_date", { ascending: false });
   if (invoicesError) throw invoicesError;
 
-  return { customer, products, invoices };
+  const invoiceIds = invoices.map((inv) => inv.id);
+  const { data: items, error: itemsError } =
+    invoiceIds.length > 0
+      ? await supabase
+          .from("sales_invoice_items")
+          .select("invoice_id, product_code, description, qty, uom, price, extension")
+          .in("invoice_id", invoiceIds)
+      : { data: [], error: null };
+  if (itemsError) throw itemsError;
+
+  const itemsByInvoice = new Map<string, SalesInvoiceWithItems["items"]>();
+  for (const it of items) {
+    const list = itemsByInvoice.get(it.invoice_id) ?? [];
+    list.push({
+      productCode: it.product_code,
+      description: it.description,
+      qty: it.qty,
+      uom: it.uom,
+      price: it.price,
+      extension: it.extension,
+    });
+    itemsByInvoice.set(it.invoice_id, list);
+  }
+
+  const invoicesWithItems: SalesInvoiceWithItems[] = invoices.map((inv) => ({
+    id: inv.id,
+    invoiceNumber: inv.invoice_number,
+    invoiceDate: inv.invoice_date,
+    saleType: inv.sale_type,
+    salespersonCode: inv.salesperson_code,
+    salespersonName: inv.salesperson_name,
+    total: inv.total,
+    items: itemsByInvoice.get(inv.id) ?? [],
+  }));
+
+  const totalSales = invoices.reduce((sum, inv) => sum + inv.total, 0);
+  const dates = invoices.map((inv) => inv.invoice_date).sort();
+
+  return {
+    customer: {
+      customerCode: customer.customer_code,
+      customerName: customer.customer_name,
+      invoiceCount: invoices.length,
+      totalSales,
+      firstInvoiceDate: dates[0] ?? null,
+      lastInvoiceDate: dates[dates.length - 1] ?? null,
+    },
+    products,
+    invoices: invoicesWithItems,
+  };
 }
