@@ -344,8 +344,107 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["activity"]["Insert"]>;
         Relationships: [];
       };
+      sales_customers: {
+        Row: {
+          customer_code: string;
+          customer_name: string;
+        };
+        Insert: {
+          customer_code: string;
+          customer_name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["sales_customers"]["Insert"]>;
+        Relationships: [];
+      };
+      sales_invoices: {
+        Row: {
+          id: string;
+          customer_code: string;
+          invoice_number: string;
+          invoice_date: string;
+          sale_type: string;
+          salesperson_code: string | null;
+          salesperson_name: string | null;
+          total: number;
+          source_file: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_code: string;
+          invoice_number: string;
+          invoice_date: string;
+          sale_type: string;
+          salesperson_code?: string | null;
+          salesperson_name?: string | null;
+          total: number;
+          source_file?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["sales_invoices"]["Insert"]>;
+        Relationships: [];
+      };
+      sales_invoice_items: {
+        Row: {
+          id: string;
+          invoice_id: string;
+          product_code: string;
+          description: string;
+          qty: number;
+          uom: string | null;
+          price: number | null;
+          extension: number;
+        };
+        Insert: {
+          id?: string;
+          invoice_id: string;
+          product_code: string;
+          description: string;
+          qty: number;
+          uom?: string | null;
+          price?: number | null;
+          extension: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["sales_invoice_items"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
+      sales_customer_totals: {
+        Row: {
+          customer_code: string;
+          customer_name: string;
+          invoice_count: number;
+          total_sales: number;
+          first_invoice_date: string | null;
+          last_invoice_date: string | null;
+        };
+        Relationships: [];
+      };
+      sales_customer_salesperson_totals: {
+        Row: {
+          customer_code: string;
+          customer_name: string;
+          salesperson_code: string | null;
+          salesperson_name: string | null;
+          invoice_count: number;
+          total_sales: number;
+          first_invoice_date: string | null;
+          last_invoice_date: string | null;
+        };
+        Relationships: [];
+      };
+      sales_customer_products: {
+        Row: {
+          customer_code: string;
+          product_code: string;
+          description: string;
+          total_qty: number;
+          total_extension: number;
+          invoice_count: number;
+        };
+        Relationships: [];
+      };
       leads_with_totals: {
         Row: Database["public"]["Tables"]["leads"]["Row"] & {
           estimated_annual_sales: number;

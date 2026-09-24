@@ -9,6 +9,7 @@ import {
   Settings,
   Building2,
   Users,
+  DollarSign,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/leads", label: "Leads", icon: ListChecks },
   { href: "/customers", label: "Customers", icon: Building2 },
+  { href: "/sales", label: "Sales", icon: DollarSign },
   { href: "/team", label: "Team", icon: Users },
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   {

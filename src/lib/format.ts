@@ -62,6 +62,13 @@ export function formatCurrency(value: number | null) {
   }).format(value);
 }
 
+// Code '90' ("Office" in the source system) represents invoices not
+// assigned to an individual rep — shown as "House account" instead.
+export function salesSalespersonName(code: string | null, name: string | null) {
+  if (code === "90") return "House account";
+  return name ?? "Unassigned";
+}
+
 export function isOverdue(dateStr: string | null) {
   if (!dateStr) return false;
   return new Date(`${dateStr}T00:00:00`) < new Date(new Date().toDateString());
