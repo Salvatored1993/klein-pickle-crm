@@ -13,6 +13,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -23,6 +30,7 @@ import {
 
 const TOP_N = 12;
 const CASE_UOM = "CS";
+const ALL_YEARS = "__all__";
 
 type Metric = "dollars" | "cases";
 
@@ -44,9 +52,16 @@ export function SalesList({
 }) {
   const [salespersonFilter, setSalespersonFilter] = useState(ALL_SALESPEOPLE);
   const [customerFilter, setCustomerFilter] = useState(ALL_CUSTOMERS);
+  const [yearFilter, setYearFilter] = useState(ALL_YEARS);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [metric, setMetric] = useState<Metric>("dollars");
+
+  const years = useMemo(() => {
+    const seen = new Set<string>();
+    for (const inv of invoices) seen.add(inv.invoiceDate.slice(0, 4));
+    return Array.from(seen).sort((a, b) => b.localeCompare(a));
+  }, [invoices]);
 
   const salespeople = useMemo(() => {
     const seen = new Map<string, string>();
@@ -76,6 +91,7 @@ export function SalesList({
         return false;
       }
       if (customerFilter !== ALL_CUSTOMERS && customerCode !== customerFilter) return false;
+      if (yearFilter !== ALL_YEARS && date.slice(0, 4) !== yearFilter) return false;
       if (fromDate && date < fromDate) return false;
       if (toDate && date > toDate) return false;
       return true;
@@ -133,7 +149,7 @@ export function SalesList({
     }
 
     return Array.from(byCustomer.values()).sort((a, b) => b.value - a.value);
-  }, [invoices, lineItems, metric, salespersonFilter, customerFilter, fromDate, toDate]);
+  }, [invoices, lineItems, metric, salespersonFilter, customerFilter, yearFilter, fromDate, toDate]);
 
   const withValue = rows.filter((r) => r.value > 0);
   const grandTotal = withValue.reduce((sum, r) => sum + r.value, 0);
@@ -144,7 +160,8 @@ export function SalesList({
     total: r.value,
   }));
 
-  const isFiltered = fromDate || toDate || customerFilter !== ALL_CUSTOMERS;
+  const isFiltered =
+    fromDate || toDate || customerFilter !== ALL_CUSTOMERS || yearFilter !== ALL_YEARS;
 
   return (
     <div className="flex flex-col gap-6">
@@ -169,6 +186,22 @@ export function SalesList({
         <div className="flex flex-col gap-2">
           <Label className="text-xs text-muted-foreground">Customer</Label>
           <CustomerFilter value={customerFilter} onChange={setCustomerFilter} customers={customers} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label className="text-xs text-muted-foreground">Year</Label>
+          <Select value={yearFilter} onValueChange={(v) => v && setYearFilter(v)}>
+            <SelectTrigger className="w-full sm:w-32">
+              <SelectValue>{(v: string) => (v === ALL_YEARS ? "All years" : v)}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_YEARS}>All years</SelectItem>
+              {years.map((y) => (
+                <SelectItem key={y} value={y}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="sales-from" className="text-xs text-muted-foreground">
@@ -203,6 +236,7 @@ export function SalesList({
               setFromDate("");
               setToDate("");
               setCustomerFilter(ALL_CUSTOMERS);
+              setYearFilter(ALL_YEARS);
             }}
           >
             Clear filters
