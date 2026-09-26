@@ -12,7 +12,7 @@ import {
   type LeadProductLineItem,
 } from "@/app/(app)/leads/actions";
 import type { Database } from "@/lib/database.types";
-import { displayName } from "@/lib/format";
+import { displayName, formatCurrency, formatDate } from "@/lib/format";
 import {
   SALES_STAGES,
   STAGE_DEFAULT_PROBABILITY,
@@ -187,8 +187,16 @@ export function LeadForm({
       {!canEdit ? (
         <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
           This lead belongs to {ownerName} and is currently at the{" "}
-          <span className="font-medium text-foreground">{lead?.sales_stage}</span> stage.
-          The rest of the details are private — you can still add tasks and comments
+          <span className="font-medium text-foreground">{lead?.sales_stage}</span> stage
+          (est. annual sales{" "}
+          <span className="font-medium text-foreground">
+            {formatCurrency(lead?.estimated_annual_sales ?? null)}
+          </span>
+          , next follow-up{" "}
+          <span className="font-medium text-foreground">
+            {formatDate(lead?.next_follow_up_date ?? null)}
+          </span>
+          ). The rest of the details are private — you can still add tasks and comments
           below.
         </p>
       ) : null}

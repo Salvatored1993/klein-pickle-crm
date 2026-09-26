@@ -62,11 +62,6 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
               </TableHeader>
               <TableBody>
                 {visibleLeads.map((lead) => {
-                  // Details come back null from the DB for a lead that
-                  // isn't yours (privacy — see leads_with_totals) —
-                  // lead_date is NOT NULL on a real row, so its absence is a
-                  // reliable "this is masked" signal. Stage stays visible.
-                  const isPrivate = lead.lead_date === null;
                   return (
                     <TableRow key={lead.id}>
                       <TableCell>
@@ -78,28 +73,18 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                       <TableCell>
                         <Badge variant="secondary">{lead.sales_stage}</Badge>
                       </TableCell>
+                      <TableCell>{formatCurrency(lead.estimated_annual_sales)}</TableCell>
                       <TableCell>
-                        {isPrivate ? (
-                          <span className="text-muted-foreground">Private</span>
-                        ) : (
-                          formatCurrency(lead.estimated_annual_sales)
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isPrivate ? (
-                          <span className="text-muted-foreground">Private</span>
-                        ) : (
-                          <span
-                            className={
-                              isOverdue(lead.next_follow_up_date) &&
-                              !["Won", "Lost"].includes(lead.sales_stage)
-                                ? "font-medium text-destructive"
-                                : undefined
-                            }
-                          >
-                            {formatDate(lead.next_follow_up_date)}
-                          </span>
-                        )}
+                        <span
+                          className={
+                            isOverdue(lead.next_follow_up_date) &&
+                            !["Won", "Lost"].includes(lead.sales_stage)
+                              ? "font-medium text-destructive"
+                              : undefined
+                          }
+                        >
+                          {formatDate(lead.next_follow_up_date)}
+                        </span>
                       </TableCell>
                     </TableRow>
                   );
@@ -110,7 +95,6 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
 
           <ul className="flex flex-col gap-3 md:hidden">
             {visibleLeads.map((lead) => {
-              const isPrivate = lead.lead_date === null;
               return (
                 <li key={lead.id}>
                   <Link
@@ -124,9 +108,6 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                     <span className="text-sm text-muted-foreground">
                       {profileName(profiles, lead.salesperson_id)}
                     </span>
-                    {isPrivate ? (
-                      <span className="text-sm text-muted-foreground">Details private</span>
-                    ) : (
                       <div className="flex items-center justify-between text-sm">
                         <span>{formatCurrency(lead.estimated_annual_sales)}</span>
                         <span
@@ -140,7 +121,6 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                           Follow up {formatDate(lead.next_follow_up_date)}
                         </span>
                       </div>
-                    )}
                   </Link>
                 </li>
               );

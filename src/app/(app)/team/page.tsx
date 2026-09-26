@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/supabase/current-user";
 import { listSalespeople } from "@/lib/queries/profiles";
 import { listLeads } from "@/lib/queries/leads";
 import { listCustomers } from "@/lib/queries/customers";
@@ -9,9 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default async function TeamPage() {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect("/login");
-
   const [salespeople, leads, customers] = await Promise.all([
     listSalespeople(),
     listLeads(),
@@ -30,9 +25,6 @@ export default async function TeamPage() {
 
     return {
       person,
-      // Other reps' lead values are private (leads_with_totals masking);
-      // stage is visible, so open-lead counts are still accurate.
-      canSeeLeadDetails: currentUser.role === "admin" || currentUser.id === person.id,
       openLeadsCount: openLeads.length,
       openValue,
       overdueCount: overdueLeads + overdueCheckins,
@@ -48,7 +40,7 @@ export default async function TeamPage() {
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {rows.map(({ person, canSeeLeadDetails, openLeadsCount, openValue, overdueCount, activeCustomersCount }) => (
+        {rows.map(({ person, openLeadsCount, openValue, overdueCount, activeCustomersCount }) => (
           <Link key={person.id} href={`/team/${person.id}`}>
             <Card className="h-full transition-colors hover:bg-muted/50">
               <CardHeader>
@@ -59,7 +51,7 @@ export default async function TeamPage() {
               <CardContent className="flex flex-col gap-1 text-sm text-muted-foreground">
                 <p>
                   {openLeadsCount} open lead{openLeadsCount === 1 ? "" : "s"} ·{" "}
-                  {canSeeLeadDetails ? formatCurrency(openValue) : "value private"}
+                  {formatCurrency(openValue)}
                 </p>
                 <p>
                   {activeCustomersCount} active customer{activeCustomersCount === 1 ? "" : "s"}
