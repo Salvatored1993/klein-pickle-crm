@@ -188,8 +188,8 @@ export function LeadForm({
         <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
           This lead belongs to {ownerName} and is currently at the{" "}
           <span className="font-medium text-foreground">{lead?.sales_stage}</span> stage.
-          Other details are private to them and admin — you can still add tasks and
-          comments below.
+          The rest of the details are private — you can still add tasks and comments
+          below.
         </p>
       ) : null}
       {canEdit ? (
