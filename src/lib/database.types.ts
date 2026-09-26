@@ -454,11 +454,11 @@ export interface Database {
         // nullable here even where the base leads table forbids null.
         Row: Pick<
           Database["public"]["Tables"]["leads"]["Row"],
-          "id" | "salesperson_id" | "company_name" | "converted_customer_id" | "created_at" | "updated_at"
+          "id" | "salesperson_id" | "company_name" | "sales_stage" | "converted_customer_id" | "created_at" | "updated_at"
         > & {
           [K in keyof Omit<
             Database["public"]["Tables"]["leads"]["Row"],
-            "id" | "salesperson_id" | "company_name" | "converted_customer_id" | "created_at" | "updated_at"
+            "id" | "salesperson_id" | "company_name" | "sales_stage" | "converted_customer_id" | "created_at" | "updated_at"
           >]: Database["public"]["Tables"]["leads"]["Row"][K] | null;
         } & {
           estimated_annual_sales: number | null;

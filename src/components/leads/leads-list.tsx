@@ -64,9 +64,9 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                 {visibleLeads.map((lead) => {
                   // Details come back null from the DB for a lead that
                   // isn't yours (privacy — see leads_with_totals) —
-                  // sales_stage is never legitimately null on a real row,
-                  // so its absence is a reliable "this is masked" signal.
-                  const isPrivate = lead.sales_stage === null;
+                  // lead_date is NOT NULL on a real row, so its absence is a
+                  // reliable "this is masked" signal. Stage stays visible.
+                  const isPrivate = lead.lead_date === null;
                   return (
                     <TableRow key={lead.id}>
                       <TableCell>
@@ -76,13 +76,7 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                       </TableCell>
                       <TableCell>{profileName(profiles, lead.salesperson_id)}</TableCell>
                       <TableCell>
-                        {isPrivate ? (
-                          <Badge variant="outline" className="text-muted-foreground">
-                            Private
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">{lead.sales_stage}</Badge>
-                        )}
+                        <Badge variant="secondary">{lead.sales_stage}</Badge>
                       </TableCell>
                       <TableCell>
                         {isPrivate ? (
@@ -98,7 +92,7 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                           <span
                             className={
                               isOverdue(lead.next_follow_up_date) &&
-                              !["Won", "Lost"].includes(lead.sales_stage ?? "")
+                              !["Won", "Lost"].includes(lead.sales_stage)
                                 ? "font-medium text-destructive"
                                 : undefined
                             }
@@ -116,7 +110,7 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
 
           <ul className="flex flex-col gap-3 md:hidden">
             {visibleLeads.map((lead) => {
-              const isPrivate = lead.sales_stage === null;
+              const isPrivate = lead.lead_date === null;
               return (
                 <li key={lead.id}>
                   <Link
@@ -125,13 +119,7 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{lead.company_name}</span>
-                      {isPrivate ? (
-                        <Badge variant="outline" className="text-muted-foreground">
-                          Private
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">{lead.sales_stage}</Badge>
-                      )}
+                      <Badge variant="secondary">{lead.sales_stage}</Badge>
                     </div>
                     <span className="text-sm text-muted-foreground">
                       {profileName(profiles, lead.salesperson_id)}
@@ -144,7 +132,7 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                         <span
                           className={
                             isOverdue(lead.next_follow_up_date) &&
-                            !["Won", "Lost"].includes(lead.sales_stage ?? "")
+                            !["Won", "Lost"].includes(lead.sales_stage)
                               ? "font-medium text-destructive"
                               : "text-muted-foreground"
                           }

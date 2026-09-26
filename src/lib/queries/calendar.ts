@@ -49,7 +49,7 @@ export async function listUpcomingForCalendar(
   const nameById = new Map(profiles.map((p) => [p.id, displayName(p.full_name, p.email)]));
 
   const leadItems: CalendarItem[] = leads
-    .filter((l) => !["Won", "Lost"].includes(l.sales_stage ?? ""))
+    .filter((l) => !["Won", "Lost"].includes(l.sales_stage))
     .map((l) => ({
       id: l.id,
       type: "lead",

@@ -39,7 +39,7 @@ export async function getDailyDigests(): Promise<SalespersonDigest[]> {
     .not("next_follow_up_date", "is", null)
     .is("converted_customer_id", null);
   if (leadsError) throw leadsError;
-  const leads = leadsRaw.filter((l) => !["Won", "Lost"].includes(l.sales_stage ?? ""));
+  const leads = leadsRaw.filter((l) => !["Won", "Lost"].includes(l.sales_stage));
 
   const { data: customers, error: customersError } = await supabase
     .from("customers")

@@ -41,10 +41,10 @@ export default async function TeamMemberPage(props: PageProps<"/team/[id]">) {
             <ul className="flex flex-col gap-2">
               {leads.map((lead) => {
                 // Masked by leads_with_totals when it isn't the viewer's lead.
-                const isPrivate = lead.sales_stage === null;
+                const isPrivate = lead.lead_date === null;
                 const overdue =
                   isOverdue(lead.next_follow_up_date) &&
-                  !["Won", "Lost"].includes(lead.sales_stage ?? "");
+                  !["Won", "Lost"].includes(lead.sales_stage);
                 return (
                   <li key={lead.id}>
                     <Link
@@ -54,9 +54,8 @@ export default async function TeamMemberPage(props: PageProps<"/team/[id]">) {
                       <div>
                         <p className="font-medium">{lead.company_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {isPrivate
-                            ? "Details private"
-                            : `${lead.sales_stage} · ${formatCurrency(lead.estimated_annual_sales)}`}
+                          {lead.sales_stage} ·{" "}
+                          {isPrivate ? "details private" : formatCurrency(lead.estimated_annual_sales)}
                         </p>
                       </div>
                       {isPrivate ? null : (

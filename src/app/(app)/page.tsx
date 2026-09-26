@@ -10,7 +10,7 @@ export default async function HomePage() {
   if (!currentUser) redirect("/login");
 
   const allLeads = await listLeads();
-  const open = allLeads.filter((l) => !["Won", "Lost"].includes(l.sales_stage ?? ""));
+  const open = allLeads.filter((l) => !["Won", "Lost"].includes(l.sales_stage));
   const scoped =
     currentUser.role === "admin"
       ? open

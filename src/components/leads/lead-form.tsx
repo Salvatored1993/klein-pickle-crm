@@ -186,8 +186,10 @@ export function LeadForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-4 pb-24 md:pb-6">
       {!canEdit ? (
         <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
-          This lead belongs to {ownerName}. Details are private to them and admin, so the
-          fields below are hidden — you can still add tasks and comments below.
+          This lead belongs to {ownerName} and is currently at the{" "}
+          <span className="font-medium text-foreground">{lead?.sales_stage}</span> stage.
+          Other details are private to them and admin — you can still add tasks and
+          comments below.
         </p>
       ) : null}
       {canEdit ? (
