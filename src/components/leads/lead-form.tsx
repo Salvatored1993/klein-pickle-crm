@@ -99,7 +99,17 @@ export function LeadForm({
     // reach an update/insert payload.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to omit it from leadFields
     const { estimated_annual_sales: _estimatedAnnualSales, ...leadFields } = lead;
-    return leadFields;
+    // Detail columns come back null when the viewer can't see this lead's
+    // details (leads_with_totals masking) — the form isn't rendered in that
+    // case, but NOT NULL columns still need a non-null value to type-check.
+    return {
+      ...leadFields,
+      lead_date: leadFields.lead_date ?? undefined,
+      sales_stage: leadFields.sales_stage ?? undefined,
+      sample_required: leadFields.sample_required ?? undefined,
+      broker_involved: leadFields.broker_involved ?? undefined,
+      sample_trial_status: leadFields.sample_trial_status ?? undefined,
+    };
   });
   const [lineItems, setLineItems] = useState<LeadProductLineItem[]>(initialLineItems);
   const [showConvertPrompt, setShowConvertPrompt] = useState(false);
@@ -176,11 +186,12 @@ export function LeadForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-4 pb-24 md:pb-6">
       {!canEdit ? (
         <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
-          You&apos;re viewing {ownerName}&apos;s lead. Only they or an admin can make
-          changes here — you can still add tasks and comments below.
+          This lead belongs to {ownerName}. Details are private to them and admin, so the
+          fields below are hidden — you can still add tasks and comments below.
         </p>
       ) : null}
-      <fieldset disabled={!canEdit} className="contents">
+      {canEdit ? (
+      <fieldset className="contents">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Basic info</CardTitle>
@@ -589,6 +600,7 @@ export function LeadForm({
         </CardContent>
       </Card>
       </fieldset>
+      ) : null}
 
       {canEdit ? (
         <div className="fixed inset-x-0 bottom-16 z-30 border-t bg-background p-3 md:static md:border-none md:bg-transparent md:p-0">

@@ -56,6 +56,8 @@ export default async function LeadPrintPage(props: {
   } catch {
     notFound();
   }
+  // Details are masked for anyone but the owner/admin — nothing to print.
+  if (currentUser.role !== "admin" && currentUser.id !== lead.salesperson_id) notFound();
 
   const products = await listAllProducts();
 

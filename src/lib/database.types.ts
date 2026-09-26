@@ -448,8 +448,20 @@ export interface Database {
         Relationships: [];
       };
       leads_with_totals: {
-        Row: Database["public"]["Tables"]["leads"]["Row"] & {
-          estimated_annual_sales: number;
+        // Detail fields come back null for a lead that isn't yours or
+        // admin's (privacy masking — see migration 0023). Only these six
+        // always carry a real value, so every other field widens to
+        // nullable here even where the base leads table forbids null.
+        Row: Pick<
+          Database["public"]["Tables"]["leads"]["Row"],
+          "id" | "salesperson_id" | "company_name" | "converted_customer_id" | "created_at" | "updated_at"
+        > & {
+          [K in keyof Omit<
+            Database["public"]["Tables"]["leads"]["Row"],
+            "id" | "salesperson_id" | "company_name" | "converted_customer_id" | "created_at" | "updated_at"
+          >]: Database["public"]["Tables"]["leads"]["Row"][K] | null;
+        } & {
+          estimated_annual_sales: number | null;
         };
         Relationships: [];
       };

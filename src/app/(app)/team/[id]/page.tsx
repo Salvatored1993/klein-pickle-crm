@@ -40,9 +40,11 @@ export default async function TeamMemberPage(props: PageProps<"/team/[id]">) {
           ) : (
             <ul className="flex flex-col gap-2">
               {leads.map((lead) => {
+                // Masked by leads_with_totals when it isn't the viewer's lead.
+                const isPrivate = lead.sales_stage === null;
                 const overdue =
                   isOverdue(lead.next_follow_up_date) &&
-                  !["Won", "Lost"].includes(lead.sales_stage);
+                  !["Won", "Lost"].includes(lead.sales_stage ?? "");
                 return (
                   <li key={lead.id}>
                     <Link
@@ -52,14 +54,18 @@ export default async function TeamMemberPage(props: PageProps<"/team/[id]">) {
                       <div>
                         <p className="font-medium">{lead.company_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {lead.sales_stage} · {formatCurrency(lead.estimated_annual_sales)}
+                          {isPrivate
+                            ? "Details private"
+                            : `${lead.sales_stage} · ${formatCurrency(lead.estimated_annual_sales)}`}
                         </p>
                       </div>
-                      <Badge variant={overdue ? "destructive" : "secondary"}>
-                        {lead.next_follow_up_date
-                          ? `Follow up ${formatDate(lead.next_follow_up_date)}`
-                          : "No follow-up set"}
-                      </Badge>
+                      {isPrivate ? null : (
+                        <Badge variant={overdue ? "destructive" : "secondary"}>
+                          {lead.next_follow_up_date
+                            ? `Follow up ${formatDate(lead.next_follow_up_date)}`
+                            : "No follow-up set"}
+                        </Badge>
+                      )}
                     </Link>
                   </li>
                 );

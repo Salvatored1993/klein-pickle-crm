@@ -31,13 +31,15 @@ export async function getDailyDigests(): Promise<SalespersonDigest[]> {
   if (salespeopleError) throw salespeopleError;
 
   const { data: leadsRaw, error: leadsError } = await supabase
-    .from("leads_with_totals")
+    // The raw table, not leads_with_totals: this runs as the service role
+    // (no auth.uid()), so the view's privacy masking would null every row.
+    .from("leads")
     .select("id, company_name, salesperson_id, sales_stage, next_follow_up_date, converted_customer_id")
     .lte("next_follow_up_date", today)
     .not("next_follow_up_date", "is", null)
     .is("converted_customer_id", null);
   if (leadsError) throw leadsError;
-  const leads = leadsRaw.filter((l) => !["Won", "Lost"].includes(l.sales_stage));
+  const leads = leadsRaw.filter((l) => !["Won", "Lost"].includes(l.sales_stage ?? ""));
 
   const { data: customers, error: customersError } = await supabase
     .from("customers")

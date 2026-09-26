@@ -39,14 +39,19 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
     listActivityFor({ leadId: id }),
   ]);
 
+  const canSeeDetails =
+    currentUser.role === "admin" || currentUser.id === lead.salesperson_id;
+
   return (
     <div className="p-4 md:p-6">
       <div className="mb-4 flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{lead.company_name}</h1>
+        {canSeeDetails ? (
         <Button variant="outline" size="sm" render={<Link href={`/leads/${id}/print`} target="_blank" rel="noopener noreferrer" />}>
           <Printer className="size-4" />
           Print
         </Button>
+        ) : null}
       </div>
 
       <Tabs defaultValue="details" className="max-w-3xl">
