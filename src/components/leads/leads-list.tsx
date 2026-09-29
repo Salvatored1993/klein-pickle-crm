@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Database } from "@/lib/database.types";
-import { profileName, displayName, formatCurrency, formatDate, isOverdue } from "@/lib/format";
+import { profileName, displayName } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -56,75 +56,43 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                   <TableHead>Company</TableHead>
                   <TableHead>Salesperson</TableHead>
                   <TableHead>Stage</TableHead>
-                  <TableHead>Est. annual sales</TableHead>
-                  <TableHead>Next follow-up</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visibleLeads.map((lead) => {
-                  return (
-                    <TableRow key={lead.id}>
-                      <TableCell>
-                        <Link href={`/leads/${lead.id}`} className="font-medium hover:underline">
-                          {lead.company_name}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{profileName(profiles, lead.salesperson_id)}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{lead.sales_stage}</Badge>
-                      </TableCell>
-                      <TableCell>{formatCurrency(lead.estimated_annual_sales)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={
-                            isOverdue(lead.next_follow_up_date) &&
-                            !["Won", "Lost"].includes(lead.sales_stage)
-                              ? "font-medium text-destructive"
-                              : undefined
-                          }
-                        >
-                          {formatDate(lead.next_follow_up_date)}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {visibleLeads.map((lead) => (
+                  <TableRow key={lead.id}>
+                    <TableCell>
+                      <Link href={`/leads/${lead.id}`} className="font-medium hover:underline">
+                        {lead.company_name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{profileName(profiles, lead.salesperson_id)}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{lead.sales_stage}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
 
           <ul className="flex flex-col gap-3 md:hidden">
-            {visibleLeads.map((lead) => {
-              return (
-                <li key={lead.id}>
-                  <Link
-                    href={`/leads/${lead.id}`}
-                    className="flex flex-col gap-1 rounded-md border p-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{lead.company_name}</span>
-                      <Badge variant="secondary">{lead.sales_stage}</Badge>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {profileName(profiles, lead.salesperson_id)}
-                    </span>
-                      <div className="flex items-center justify-between text-sm">
-                        <span>{formatCurrency(lead.estimated_annual_sales)}</span>
-                        <span
-                          className={
-                            isOverdue(lead.next_follow_up_date) &&
-                            !["Won", "Lost"].includes(lead.sales_stage)
-                              ? "font-medium text-destructive"
-                              : "text-muted-foreground"
-                          }
-                        >
-                          Follow up {formatDate(lead.next_follow_up_date)}
-                        </span>
-                      </div>
-                  </Link>
-                </li>
-              );
-            })}
+            {visibleLeads.map((lead) => (
+              <li key={lead.id}>
+                <Link
+                  href={`/leads/${lead.id}`}
+                  className="flex flex-col gap-1 rounded-md border p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{lead.company_name}</span>
+                    <Badge variant="secondary">{lead.sales_stage}</Badge>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {profileName(profiles, lead.salesperson_id)}
+                  </span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </>
       )}
