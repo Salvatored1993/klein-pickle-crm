@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Database } from "@/lib/database.types";
-import { profileName, displayName } from "@/lib/format";
+import { profileName, displayName, formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -56,6 +56,7 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                   <TableHead>Company</TableHead>
                   <TableHead>Salesperson</TableHead>
                   <TableHead>Stage</TableHead>
+                  <TableHead>Last contact</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -70,6 +71,7 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                     <TableCell>
                       <Badge variant="secondary">{lead.sales_stage}</Badge>
                     </TableCell>
+                    <TableCell>{formatDate(lead.last_contact_date)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -87,9 +89,10 @@ export function LeadsList({ leads, profiles }: { leads: Lead[]; profiles: Profil
                     <span className="font-medium">{lead.company_name}</span>
                     <Badge variant="secondary">{lead.sales_stage}</Badge>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {profileName(profiles, lead.salesperson_id)}
-                  </span>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{profileName(profiles, lead.salesperson_id)}</span>
+                    <span>Last contact {formatDate(lead.last_contact_date)}</span>
+                  </div>
                 </Link>
               </li>
             ))}

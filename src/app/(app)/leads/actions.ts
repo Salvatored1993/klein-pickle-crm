@@ -55,6 +55,7 @@ const LEAD_WRITABLE_FIELDS = [
   "probability_to_close",
   "next_action",
   "next_follow_up_date",
+  "last_contact_date",
   "notes",
   "lost_reason",
 ] as const satisfies readonly (keyof LeadInput)[];

@@ -575,6 +575,15 @@ export function LeadForm({
             />
           </div>
           <div className="flex flex-col gap-2">
+            <Label htmlFor="last_contact_date">Last contact date</Label>
+            <Input
+              id="last_contact_date"
+              type="date"
+              value={values.last_contact_date ?? ""}
+              onChange={(e) => set("last_contact_date", e.target.value || null)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
             <Label htmlFor="next_follow_up_date">Next follow-up date</Label>
             <Input
               id="next_follow_up_date"
