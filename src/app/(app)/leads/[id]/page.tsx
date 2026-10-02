@@ -1,13 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Printer } from "lucide-react";
-import { getLead } from "@/lib/queries/leads";
+import { getLead, listLeadDocuments } from "@/lib/queries/leads";
 import type { LeadProductLineItem } from "@/app/(app)/leads/actions";
 import { listSalespeople, listActiveProfiles } from "@/lib/queries/profiles";
 import { listActiveProducts } from "@/lib/queries/products";
 import { listTasksFor, listActivityFor } from "@/lib/queries/collab";
 import { getCurrentUser } from "@/lib/supabase/current-user";
 import { LeadForm } from "@/components/leads/lead-form";
+import { LeadDocuments } from "@/components/leads/lead-documents";
 import { Button } from "@/components/ui/button";
 import { TaskList } from "@/components/collab/task-list";
 import { ActivityFeed } from "@/components/collab/activity-feed";
@@ -41,6 +42,7 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
 
   const canSeeDetails =
     currentUser.role === "admin" || currentUser.id === lead.salesperson_id;
+  const documents = canSeeDetails ? await listLeadDocuments(id) : [];
 
   return (
     <div className="p-4 md:p-6">
@@ -53,6 +55,12 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
         </Button>
         ) : null}
       </div>
+
+      {canSeeDetails ? (
+        <div className="mb-4 max-w-3xl">
+          <LeadDocuments leadId={id} documents={documents} profiles={profiles} />
+        </div>
+      ) : null}
 
       <Tabs defaultValue="details" className="max-w-3xl">
         <TabsList>

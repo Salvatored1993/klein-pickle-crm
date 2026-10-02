@@ -76,3 +76,16 @@ export async function listLeadScorecard() {
   if (error) throw error;
   return data;
 }
+
+// Private to the lead's owner + admin (RLS) — others just get an empty list.
+export async function listLeadDocuments(leadId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("lead_documents")
+    .select("*")
+    .eq("lead_id", leadId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}

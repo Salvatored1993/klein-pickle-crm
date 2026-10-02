@@ -194,6 +194,30 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["leads"]["Insert"]>;
         Relationships: [];
       };
+      lead_documents: {
+        Row: {
+          id: string;
+          lead_id: string;
+          storage_path: string;
+          file_name: string;
+          content_type: string | null;
+          size_bytes: number | null;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          storage_path: string;
+          file_name: string;
+          content_type?: string | null;
+          size_bytes?: number | null;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["lead_documents"]["Insert"]>;
+        Relationships: [];
+      };
       lead_products: {
         Row: {
           id: string;
