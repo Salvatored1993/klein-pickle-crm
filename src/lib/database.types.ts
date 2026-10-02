@@ -449,6 +449,16 @@ export interface Database {
         };
         Relationships: [];
       };
+      lead_monthly_scorecard: {
+        Row: {
+          salesperson_id: string;
+          month: string;
+          generated: number;
+          won: number;
+          lost: number;
+        };
+        Relationships: [];
+      };
       leads_with_totals: {
         // Detail fields come back null for a lead that isn't yours or
         // admin's (privacy masking — see migration 0023). Only these six

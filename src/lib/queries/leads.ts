@@ -63,3 +63,16 @@ export async function getLead(id: string) {
     })),
   };
 }
+
+// Team-wide monthly counts (generated / won / lost per salesperson) for
+// the Leads tab scorecard — counts only, so every rep can see them.
+export async function listLeadScorecard() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("lead_monthly_scorecard")
+    .select("*")
+    .order("month", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
