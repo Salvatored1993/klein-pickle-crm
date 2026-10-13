@@ -74,6 +74,10 @@ export function DocumentsPanel({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Counter rather than a boolean: dragenter/dragleave fire for every child
+  // element the cursor crosses, which would otherwise flicker the highlight.
+  const [dragDepth, setDragDepth] = useState(0);
+  const dragging = dragDepth > 0;
 
   const isLead = "leadId" in target;
   const ownerId = isLead ? target.leadId : target.customerId;
@@ -90,6 +94,10 @@ export function DocumentsPanel({
     return isLead
       ? supabase.from("lead_documents").insert({ lead_id: ownerId, ...fields })
       : supabase.from("customer_documents").insert({ customer_id: ownerId, ...fields });
+  }
+
+  function hasFiles(e: React.DragEvent) {
+    return Array.from(e.dataTransfer.types).includes("Files");
   }
 
   async function upload(files: FileList) {
@@ -148,7 +156,29 @@ export function DocumentsPanel({
   ];
 
   return (
-    <Card>
+    <Card
+      className={dragging ? "ring-2 ring-primary ring-offset-2" : undefined}
+      onDragEnter={(e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault();
+        setDragDepth((d) => d + 1);
+      }}
+      onDragOver={(e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+      }}
+      onDragLeave={(e) => {
+        if (!hasFiles(e)) return;
+        setDragDepth((d) => Math.max(0, d - 1));
+      }}
+      onDrop={(e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault();
+        setDragDepth(0);
+        if (!uploading && e.dataTransfer.files.length) upload(e.dataTransfer.files);
+      }}
+    >
       <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-base">Documents</CardTitle>
         <input
@@ -169,11 +199,18 @@ export function DocumentsPanel({
         </Button>
       </CardHeader>
       <CardContent>
+        {dragging ? (
+          <div className="mb-3 rounded-md border-2 border-dashed border-primary bg-primary/5 p-6 text-center text-sm font-medium">
+            Drop files here to upload
+          </div>
+        ) : null}
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No documents yet. Upload NDAs, signed agreements, spec sheets, forms and so on (up to
-            25 MB each).
-          </p>
+          dragging ? null : (
+            <div className="rounded-md border-2 border-dashed p-6 text-center text-sm text-muted-foreground">
+              Drag files here, or click Upload. NDAs, signed agreements, spec sheets, forms and so
+              on (up to 25 MB each).
+            </div>
+          )
         ) : (
           <ul className="flex flex-col divide-y">
             {rows.map(({ doc, bucket: docBucket, fromLead }) => (
@@ -216,6 +253,11 @@ export function DocumentsPanel({
             ))}
           </ul>
         )}
+        {rows.length > 0 && !dragging ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Tip: you can drag files onto this box to upload them.
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   );
