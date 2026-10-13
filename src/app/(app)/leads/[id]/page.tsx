@@ -8,7 +8,7 @@ import { listActiveProducts } from "@/lib/queries/products";
 import { listTasksFor, listActivityFor } from "@/lib/queries/collab";
 import { getCurrentUser } from "@/lib/supabase/current-user";
 import { LeadForm } from "@/components/leads/lead-form";
-import { LeadDocuments } from "@/components/leads/lead-documents";
+import { DocumentsPanel } from "@/components/collab/documents-panel";
 import { Button } from "@/components/ui/button";
 import { TaskList } from "@/components/collab/task-list";
 import { ActivityFeed } from "@/components/collab/activity-feed";
@@ -58,7 +58,7 @@ export default async function LeadDetailPage(props: PageProps<"/leads/[id]">) {
 
       {canSeeDetails ? (
         <div className="mb-4 max-w-3xl">
-          <LeadDocuments leadId={id} documents={documents} profiles={profiles} />
+          <DocumentsPanel target={{ leadId: id }} documents={documents} profiles={profiles} />
         </div>
       ) : null}
 

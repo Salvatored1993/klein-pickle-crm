@@ -1,6 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { getCustomer } from "@/lib/queries/customers";
+import {
+  getCustomer,
+  listCustomerDocuments,
+  listConvertedLeadDocuments,
+} from "@/lib/queries/customers";
 import { getSalesCustomer } from "@/lib/queries/sales";
 import { listSalespeople, listActiveProfiles } from "@/lib/queries/profiles";
 import { listActiveProducts } from "@/lib/queries/products";
@@ -10,6 +14,7 @@ import { CustomerForm } from "@/components/customers/customer-form";
 import { TaskList } from "@/components/collab/task-list";
 import { ActivityFeed } from "@/components/collab/activity-feed";
 import { CheckinForm } from "@/components/customers/checkin-form";
+import { DocumentsPanel } from "@/components/collab/documents-panel";
 import { CustomerOrderInfo } from "@/components/sales/customer-order-info";
 import { Badge } from "@/components/ui/badge";
 import { isOverdue, formatDate, formatCurrency } from "@/lib/format";
@@ -49,6 +54,13 @@ export default async function CustomerDetailPage(
 
   const overdue = customer.is_active && isOverdue(customer.next_checkin_date);
 
+  // Documents are private to the customer's salesperson and admin.
+  const canSeeDocuments =
+    currentUser.role === "admin" || currentUser.id === customer.salesperson_id;
+  const [documents, leadDocuments] = canSeeDocuments
+    ? await Promise.all([listCustomerDocuments(id), listConvertedLeadDocuments(id)])
+    : [[], []];
+
   return (
     <div className="p-4 md:p-6">
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -70,6 +82,16 @@ export default async function CustomerDetailPage(
       </div>
 
       <div className="max-w-3xl">
+        {canSeeDocuments ? (
+          <div className="mb-4">
+            <DocumentsPanel
+              target={{ customerId: id }}
+              documents={documents}
+              leadDocuments={leadDocuments}
+              profiles={profiles}
+            />
+          </div>
+        ) : null}
         <CheckinForm customerId={id} />
 
         <Tabs defaultValue="activity" className="mt-4">

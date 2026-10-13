@@ -49,3 +49,39 @@ export async function getCustomer(id: string) {
       .filter((productId): productId is string => productId !== null),
   };
 }
+
+// Private to the customer's salesperson + admin (RLS).
+export async function listCustomerDocuments(customerId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customer_documents")
+    .select("*")
+    .eq("customer_id", customerId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+// Documents uploaded while this customer was still a lead (e.g. an NDA),
+// so they follow the account after conversion.
+export async function listConvertedLeadDocuments(customerId: string) {
+  const supabase = await createClient();
+  const { data: leads, error: leadsError } = await supabase
+    .from("leads")
+    .select("id")
+    .eq("converted_customer_id", customerId);
+  if (leadsError) throw leadsError;
+  if (leads.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("lead_documents")
+    .select("*")
+    .in(
+      "lead_id",
+      leads.map((l) => l.id),
+    )
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
