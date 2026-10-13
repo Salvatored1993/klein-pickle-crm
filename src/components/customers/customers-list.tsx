@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Database } from "@/lib/database.types";
 import { profileName, displayName, formatDate, isOverdue } from "@/lib/format";
+import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -14,6 +16,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SalespersonFilter, ALL_SALESPEOPLE } from "@/components/filters/salesperson-filter";
+
+// Case-insensitive and ignores punctuation/spacing, so "tonys" finds
+// "Tony`s Liquor" and "smartf" finds "Smart & Final".
+function normalize(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -26,6 +34,7 @@ export function CustomersList({
   profiles: Profile[];
 }) {
   const [salespersonId, setSalespersonId] = useState(ALL_SALESPEOPLE);
+  const [search, setSearch] = useState("");
 
   const salespeople = useMemo(
     () =>
@@ -35,24 +44,47 @@ export function CustomersList({
     [profiles],
   );
 
-  const visibleCustomers = useMemo(
-    () =>
+  const visibleCustomers = useMemo(() => {
+    const bySalesperson =
       salespersonId === ALL_SALESPEOPLE
         ? customers
-        : customers.filter((c) => c.salesperson_id === salespersonId),
-    [customers, salespersonId],
-  );
+        : customers.filter((c) => c.salesperson_id === salespersonId);
+    const query = normalize(search);
+    if (!query) return bySalesperson;
+    // Names that start with what was typed come first, then any other
+    // name containing it (e.g. "fin" finds "Smart & Final #499").
+    const matches = bySalesperson.filter((c) => normalize(c.company_name).includes(query));
+    return [
+      ...matches.filter((c) => normalize(c.company_name).startsWith(query)),
+      ...matches.filter((c) => !normalize(c.company_name).startsWith(query)),
+    ];
+  }, [customers, salespersonId, search]);
 
   return (
     <div className="flex flex-col gap-4">
-      <SalespersonFilter
-        value={salespersonId}
-        onChange={setSalespersonId}
-        salespeople={salespeople}
-      />
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="relative w-full sm:w-72">
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search customers…"
+            aria-label="Search customers by name"
+            className="pl-8"
+          />
+        </div>
+        <SalespersonFilter
+          value={salespersonId}
+          onChange={setSalespersonId}
+          salespeople={salespeople}
+        />
+      </div>
 
       {visibleCustomers.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No customers match this filter.</p>
+        <p className="text-sm text-muted-foreground">
+          {search ? `No customers match "${search}".` : "No customers match this filter."}
+        </p>
       ) : (
         <>
           <div className="hidden overflow-x-auto rounded-md border md:block">
