@@ -67,8 +67,10 @@ export async function listCustomerDocuments(customerId: string) {
 // so they follow the account after conversion.
 export async function listConvertedLeadDocuments(customerId: string) {
   const supabase = await createClient();
+  // The view (not the leads table) so the customer's current rep finds the
+  // lead even if a different rep originally worked it.
   const { data: leads, error: leadsError } = await supabase
-    .from("leads")
+    .from("leads_with_totals")
     .select("id")
     .eq("converted_customer_id", customerId);
   if (leadsError) throw leadsError;
@@ -84,4 +86,18 @@ export async function listConvertedLeadDocuments(customerId: string) {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data;
+}
+
+// The lead this customer was converted from, if any.
+export async function getConvertedLeadId(customerId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("leads_with_totals")
+    .select("id")
+    .eq("converted_customer_id", customerId)
+    .order("created_at", { ascending: true })
+    .limit(1);
+
+  if (error) throw error;
+  return data[0]?.id ?? null;
 }

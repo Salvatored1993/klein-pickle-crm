@@ -4,7 +4,10 @@ import {
   getCustomer,
   listCustomerDocuments,
   listConvertedLeadDocuments,
+  getConvertedLeadId,
 } from "@/lib/queries/customers";
+import { getLead } from "@/lib/queries/leads";
+import { listAllProducts } from "@/lib/queries/products";
 import { getSalesCustomer } from "@/lib/queries/sales";
 import { listSalespeople, listActiveProfiles } from "@/lib/queries/profiles";
 import { listActiveProducts } from "@/lib/queries/products";
@@ -15,9 +18,17 @@ import { TaskList } from "@/components/collab/task-list";
 import { ActivityFeed } from "@/components/collab/activity-feed";
 import { CheckinForm } from "@/components/customers/checkin-form";
 import { DocumentsPanel } from "@/components/collab/documents-panel";
+import { LeadSummary } from "@/components/leads/lead-summary";
+import { describeActivity } from "@/lib/activity";
 import { CustomerOrderInfo } from "@/components/sales/customer-order-info";
 import { Badge } from "@/components/ui/badge";
-import { isOverdue, formatDate, formatCurrency } from "@/lib/format";
+import {
+  isOverdue,
+  formatDate,
+  formatDateTime,
+  formatCurrency,
+  profileName,
+} from "@/lib/format";
 import {
   Tabs,
   TabsContent,
@@ -61,6 +72,23 @@ export default async function CustomerDetailPage(
     ? await Promise.all([listCustomerDocuments(id), listConvertedLeadDocuments(id)])
     : [[], []];
 
+  // "Lead info" tab: everything captured while this account was still a
+  // lead (pricing, volumes, broker, samples, notes, history). Same access
+  // rule as the documents.
+  const convertedLeadId = canSeeDocuments ? await getConvertedLeadId(id) : null;
+  const convertedLead = convertedLeadId
+    ? await Promise.all([
+        getLead(convertedLeadId),
+        listAllProducts(),
+        listActivityFor({ leadId: convertedLeadId }),
+      ]).then(([{ lead, lineItems }, allProducts, leadActivity]) => ({
+        lead,
+        lineItems,
+        allProducts,
+        leadActivity,
+      }))
+    : null;
+
   return (
     <div className="p-4 md:p-6">
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -100,6 +128,7 @@ export default async function CustomerDetailPage(
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             {salesOrderInfo ? <TabsTrigger value="orders">Orders</TabsTrigger> : null}
             <TabsTrigger value="details">Details</TabsTrigger>
+            {convertedLead ? <TabsTrigger value="lead-info">Lead info</TabsTrigger> : null}
           </TabsList>
           <TabsContent value="activity">
             <ActivityFeed
@@ -137,6 +166,56 @@ export default async function CustomerDetailPage(
               currentUser={currentUser}
             />
           </TabsContent>
+          {convertedLead ? (
+            <TabsContent value="lead-info">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">
+                  Details from when this account was a lead (created{" "}
+                  {formatDate(convertedLead.lead.lead_date)}).
+                </p>
+                <Link
+                  href={`/leads/${convertedLead.lead.id}`}
+                  className="text-sm text-muted-foreground hover:underline"
+                >
+                  Open original lead &rarr;
+                </Link>
+              </div>
+              <div className="rounded-md border p-4">
+                <LeadSummary
+                  lead={convertedLead.lead}
+                  lineItems={convertedLead.lineItems}
+                  products={convertedLead.allProducts}
+                  salespersonName={
+                    profileName(profiles, convertedLead.lead.salesperson_id) ?? "Unknown"
+                  }
+                />
+              </div>
+              {convertedLead.leadActivity.length > 0 ? (
+                <div className="mt-4 rounded-md border p-4">
+                  <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide">
+                    Lead history
+                  </h2>
+                  <ul className="flex flex-col gap-3">
+                    {convertedLead.leadActivity.map((item) => (
+                      <li key={item.id} className="border-b pb-3 last:border-none last:pb-0">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-sm font-medium">
+                            {profileName(profiles, item.author_id) ?? "System"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDateTime(item.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap">
+                          {describeActivity(item) ?? item.body}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </TabsContent>
+          ) : null}
         </Tabs>
       </div>
     </div>
