@@ -33,6 +33,8 @@ export type CustomerType =
   | "Distributor"
   | "Broker"
   | "Markets/Events"
+  | "End User"
+  | "Manufacturer"
   | "Other";
 
 export type FreightTerms =

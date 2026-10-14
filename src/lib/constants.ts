@@ -62,6 +62,8 @@ export const CUSTOMER_TYPES: CustomerType[] = [
   "Distributor",
   "Broker",
   "Markets/Events",
+  "End User",
+  "Manufacturer",
   "Other",
 ];
 
