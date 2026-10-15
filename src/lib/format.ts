@@ -73,3 +73,11 @@ export function isOverdue(dateStr: string | null) {
   if (!dateStr) return false;
   return new Date(`${dateStr}T00:00:00`) < new Date(new Date().toDateString());
 }
+
+// Company names are matched by exact text in places (e.g. linking sales
+// accounts), so stray spaces create silent duplicates — "Nicholas and
+// Company " vs "Nicholas and Company". Trim the ends and collapse runs of
+// whitespace before saving.
+export function cleanCompanyName(name: string) {
+  return name.trim().replace(/\s+/g, " ");
+}

@@ -4,8 +4,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
+import { cleanCompanyName } from "@/lib/format";
 
 export type CustomerInput = Database["public"]["Tables"]["customers"]["Insert"];
+
+function withCleanName<T extends { company_name?: string }>(input: T): T {
+  return typeof input.company_name === "string"
+    ? { ...input, company_name: cleanCompanyName(input.company_name) }
+    : input;
+}
 
 async function syncCustomerProducts(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -25,7 +32,7 @@ export async function createCustomer(input: CustomerInput, productIds: string[])
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("customers")
-    .insert(input)
+    .insert(withCleanName(input))
     .select("id")
     .single();
 
@@ -42,7 +49,10 @@ export async function updateCustomer(
   productIds: string[],
 ) {
   const supabase = await createClient();
-  const { error } = await supabase.from("customers").update(input).eq("id", id);
+  const { error } = await supabase
+    .from("customers")
+    .update(withCleanName(input))
+    .eq("id", id);
   if (error) throw error;
 
   await syncCustomerProducts(supabase, id, productIds);

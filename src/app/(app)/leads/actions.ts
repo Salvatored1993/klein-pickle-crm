@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { cleanCompanyName } from "@/lib/format";
 import type { Database, PackSize } from "@/lib/database.types";
 
 export type LeadInput = Database["public"]["Tables"]["leads"]["Insert"];
@@ -64,6 +65,9 @@ function sanitizeLeadInput(input: Record<string, unknown>): LeadInput {
   const safe: Record<string, unknown> = {};
   for (const key of LEAD_WRITABLE_FIELDS) {
     if (key in input) safe[key] = input[key];
+  }
+  if (typeof safe.company_name === "string") {
+    safe.company_name = cleanCompanyName(safe.company_name);
   }
   return safe as LeadInput;
 }
@@ -150,7 +154,7 @@ export async function convertLeadToCustomer(leadId: string) {
     .from("customers")
     .insert({
       salesperson_id: lead.salesperson_id,
-      company_name: lead.company_name,
+      company_name: cleanCompanyName(lead.company_name),
       primary_contact_name: lead.primary_contact_name,
       contact_email: lead.contact_email,
       contact_phone: lead.contact_phone,
